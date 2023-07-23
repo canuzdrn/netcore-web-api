@@ -1,0 +1,13 @@
+Persistence Layer is the outermost layer responsible for dealing with data storage and accessing external services. 
+One can observe that in some of the implementations of the onion architecture, persistence layer may be implemented
+together with infrastructure layer, however we will be implementing persistence layer as a different section where
+we implement our concrete services/repositories in order to access the data of the application.
+Hence, this layer contains concrete implementations of the interfaces defined in the Core and Application Layers and
+its primary role is to provide a bridge between the domain logic in the Core Layer and the data storage or external services.
+
+Persistence Layer defines:
+- Repositories
+- Data Mappers
+- Data context
+- External Services such as 3rd party APIs
+- Database and Data Logic

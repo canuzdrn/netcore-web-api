@@ -1,0 +1,18 @@
+Application layer surrounds the Domain Layer and together
+they form the Core Layer of the application. Application Layer
+acts as an intermediary between Domain Layer and the outermost
+Infrastructure Layer and server as a bridge that enables the
+interaction between domain logic and external world, where we
+will be building our Presentation Layer to keep in touch with
+the external world which will consist of UIs and APIs.
+
+Application Layer defines:
+- Repository and Service implementations (IRepository, IService, etc.)
+- Data Transfer Objects
+- Mappings
+- Validators
+
+In summary, the Application Layer is responsible for defining and implementing the 
+use cases or application services that coordinate the domain logic with external 
+systems and user interactions. It acts as a bridge between the Core Layer and the Infrastructure Layer, 
+providing a clean and organized way to manage application-specific business logic and workflows.

@@ -1,0 +1,13 @@
+Infrastructure Layer is the layer we implement our non-database related 
+services and make them concrete. In some implementations, one might observe 
+that both Infrastructure and Persistence Layer are built together yet in 
+most of the implementations we see that Persistence Layer consist of the 
+service implementations which are database related where infrastructure 
+layer consist of service implementations that are related to business operations.
+
+In order to make the idea more concrete we can give some examples of these business
+operations:
+- Email sending
+- Notifications
+- SMS sending
+- Payment
