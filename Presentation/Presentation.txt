@@ -1,0 +1,11 @@
+Presentation Layer is the layer where user/client interacts with the application.
+Presentation Layer may define:
+- User Interface Components
+- Web API
+- Web Application Views
+
+The Presentation Layer is responsible for validating user input and handling 
+errors or exceptions gracefully. Also, error responses from the Application
+Layer or Domain Layer can be translated into user friendly error messages to be displayed 
+on the UI or returned in API responses. Hence, presentation layer also handles:
+- Validation and Error Handling
