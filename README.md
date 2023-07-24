@@ -22,10 +22,10 @@ our database operations and data access logic. Database Contexts, Database Confi
 # What's wrong with traditional Layered Architecture ?
 Although, layered architecture may enable us to design our project according to *Seperation of Concerns* principle via implementing different layers such as Presentation Layer, Business Logic Layer and Data Access Layer;
 these layers are tightly-coupled, hence it is diffucult to maintain a largely scaled projects with this architecture. Also, Data Access Layer tend to be implemented as the inner-most layer in a traditional layered architecture and
-this design principle results in a costly migration process if it is decided to change the data access logic of the application. (Ex: Changing the DBMS) Hence application of DDD as in Onion Architecture enable us to developed
+this design principle results in a costly migration process if it is decided to change the data access logic of the application. (Ex: Changing the DBMS) Hence application of DDD as in Onion Architecture enable us to develop
 loosely-coupled and maintainable code, where development process is based on the domain logic of the project which is the innermost layer of the architecture.
 
 
-*Domain Driven Design : Domain driven design is an approach that emphasizes the modeling the domain of the application as the primary concern. The primary goal of DDD is to align the software's domain model closely with the real world domain it represents which0 leads to a more effective and expressive codebase.
+*Domain Driven Design : Domain driven design is an approach that emphasizes the modeling the domain of the application as the primary concern. The primary goal of DDD is to align the software's domain model closely with the real world domain it represents which leads to a more effective and expressive codebase.
 
 ** Clean Architecture : Clean Architecture emphasizes the seperation of concerns and independence of various components in an application. The primary goal of Clean Arch is to establish a flexible and maintainable codebase that can easily adapt to changes and updates on requirements and technologies.
