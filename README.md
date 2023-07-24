@@ -2,6 +2,10 @@
 The Onion Architecture is a software architectural pattern that focuses on maintaining the independence and separation of concerns in an application. It was introduced as an extension of the principles behind Domain-Driven Design* (DDD) and Clean Architecture**.
 In the Onion Architecture, the application is organized into concentric circles or layers, with the core domain logic at the center. Each layer only depends on the layer closer to the center, hence dependencies flow inward.
 
+<p align="center">
+  <img src="https://miro.medium.com/v2/resize:fit:462/1*0Pg6_UsaKiiEqUV3kf2HXg.png" />
+</p>
+
 # Layers
 ## Domain Layer
 This is the innermost layer, representing the core domain logic of the application. It contains domain entities, value objects, domain services, and business rules. The core layer is independent of the application's external concerns, frameworks, and technologies.
