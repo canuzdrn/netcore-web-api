@@ -5,19 +5,19 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{D9C8C6AE-76FB-4B50-A3EB-7C7DF433DBC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "userMS.Domain", "Core\userMS.Domain\userMS.Domain.csproj", "{D53B3C59-1EC9-4A9C-9B1C-424A1EFADAB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "userMS.Domain", "Core\userMS.Domain\userMS.Domain.csproj", "{D53B3C59-1EC9-4A9C-9B1C-424A1EFADAB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "userMS.Application", "Core\userMS.Application\userMS.Application.csproj", "{0B28D3BF-19BF-4C7C-A477-1FDAFA8FD652}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "userMS.Application", "Core\userMS.Application\userMS.Application.csproj", "{0B28D3BF-19BF-4C7C-A477-1FDAFA8FD652}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{373869E4-EB95-49CE-B810-152BD3AB590B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "userMS.Infrastructure", "Infrastructure\userMS.Infrastructure\userMS.Infrastructure.csproj", "{D3564052-8884-4D54-BEFB-5498F25C147A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "userMS.Infrastructure", "Infrastructure\userMS.Infrastructure\userMS.Infrastructure.csproj", "{D3564052-8884-4D54-BEFB-5498F25C147A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "userMS.Persistence", "Infrastructure\userMS.Persistence\userMS.Persistence.csproj", "{5D96C7EA-BE06-4D21-BDF2-479E131F4F1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "userMS.Persistence", "Infrastructure\userMS.Persistence\userMS.Persistence.csproj", "{5D96C7EA-BE06-4D21-BDF2-479E131F4F1C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{282B1FB4-A12E-4612-9016-A1C73C74F64F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "userMS.API", "Presentation\userMS.API\userMS.API.csproj", "{E49AF751-603A-4DC3-A717-0018C312B52B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "userMS.API", "Presentation\userMS.API\userMS.API.csproj", "{E49AF751-603A-4DC3-A717-0018C312B52B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
