@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using AutoMapper;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using userMS.Application.DTOs;
 using userMS.Application.Repositories;
 using userMS.Application.Services;
 using userMS.Domain.Entities;
@@ -12,33 +9,44 @@ namespace userMS.Persistence.Services
 {
     public class UserService : IUserService
     {
-        private readonly IRepository<User, string> _repository;
+        private readonly IRepository<User, Guid> _repository;
+        private readonly IMapper _mapper;
 
-        public UserService(IRepository<User, string> repository)
+        public UserService(IRepository<User, Guid> repository, IMapper mapper)
         {
             _repository = repository;
+            _mapper = mapper;
         }
 
-
-        public async Task<User> AddUserAsync(User user)
+        public async Task<UserDto> AddUserAsync(UserDto userDto)
         {
+            var user = _mapper.Map<User>(userDto);
+
             // if no error is thrown user can be registered (boolean might be used)
             await IsExistIdenticalInfo(user);
 
-            return await _repository.AddAsync(user);
+            await _repository.AddAsync(user);
+
+            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<IEnumerable<User>> AddUsersAsync(IEnumerable<User> users)
+        public async Task<IEnumerable<UserDto>> AddUsersAsync(IEnumerable<UserDto> userDtos)
         {
+            var users = _mapper.Map<List<User>>(userDtos);
+
             foreach (User user in users)
             {
                 await IsExistIdenticalInfo(user);
             }
-            return await _repository.AddRangeAsync(users);
+            await _repository.AddRangeAsync(users);
+
+            return _mapper.Map<List<UserDto>>(users);
         }
 
-        public async Task<bool> DeleteUserAsync(User user)
+        public async Task<bool> DeleteUserAsync(UserDto userDto)
         {
+            var user = _mapper.Map<User>(userDto);
+
             // need additional check since there may exist a user
             // with the given id but not with the given user info such as
             // username, email address etc.
@@ -53,11 +61,14 @@ namespace userMS.Persistence.Services
 
         public async Task<bool> DeleteUserByIdAsync(string id)
         {
-            return await _repository.DeleteByIdAsync(id);
+            var guid = Guid.Parse(id);
+            return await _repository.DeleteByIdAsync(guid);
         }
 
-        public async Task<bool> DeleteUsersAsync(IEnumerable<User> users)
+        public async Task<bool> DeleteUsersAsync(IEnumerable<UserDto> userDtos)
         {
+            var users = _mapper.Map<List<User>>(userDtos);
+
             foreach (User user in users)
             {
                 if (!(await IsUserExists(user)))
@@ -73,60 +84,75 @@ namespace userMS.Persistence.Services
             return await _repository.FindByAsync(predicate);
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
-            return await _repository.GetAllAsync();
+            var users = await _repository.GetAllAsync();
+
+            return _mapper.Map<List<UserDto>>(users);
         }
 
-        public async Task<User> GetUserByUsernameAsync(string username)
+        public async Task<UserDto> GetUserByUsernameAsync(string username)
         {
             var filterResult = await _repository.FindByAsync(u => u.UserName == username);
             var user = filterResult.FirstOrDefault();
-            return user;
+            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<User> GetUserByEmailAddressAsync(string email)
+        public async Task<UserDto> GetUserByEmailAddressAsync(string email)
         {
             var filterResult = await _repository.FindByAsync(u => u.Email == email);
             var user = filterResult.FirstOrDefault();
-            return user;
+            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<User> GetUserByIdAsync(string id)
+        public async Task<UserDto> GetUserByIdAsync(string id)
         {
-            return await _repository.GetByIdAsync(id);
+            var guid = Guid.Parse(id);
+
+            var user = await _repository.GetByIdAsync(guid);
+
+            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<User> GetUserByPhoneNumberAsync(string phoneNo)
+        public async Task<UserDto> GetUserByPhoneNumberAsync(string phoneNo)
         {
             var filterResult = await _repository.FindByAsync(u => u.PhoneNo == phoneNo);
             var user = filterResult.FirstOrDefault();
-            return user;
+            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<User> UpdateUserAsync(User user)
+        public async Task<UserDto> UpdateUserAsync(UserDto userDto)
         {
-            var isExist = await IsUserExists(user);
+            var user = _mapper.Map<User>(userDto);
+
+            var isExist = await _repository.AnyAsync(u => u.Id == user.Id);
 
             if (!isExist)
             {
+                // may throw an error instead of returning null
                 return null;
             }
 
-            return await _repository.UpdateAsync(user);
+            var updatedUser = await _repository.UpdateAsync(user);
+
+            return _mapper.Map<UserDto>(updatedUser);
         }
 
-        public async Task<IEnumerable<User>> UpdateUsersAsync(IEnumerable<User> users)
+        public async Task<IEnumerable<UserDto>> UpdateUsersAsync(IEnumerable<UserDto> userDtos)
         {
+            var users = _mapper.Map<List<User>>(userDtos);
+
             foreach (User user in users)
             {
-                if (!(await IsUserExists(user)))
+                if (!(await _repository.AnyAsync(u => u.Id == user.Id)))
                 {
                     throw new ArgumentException("At least one of the provided users does not exist !");
                 }
             }
 
-            return await _repository.UpdateRangeAsync(users);
+            var updatedUsers = await _repository.UpdateRangeAsync(users);
+
+            return _mapper.Map<List<UserDto>>(updatedUsers);
         }
 
         public async Task IsExistIdenticalInfo(User user)

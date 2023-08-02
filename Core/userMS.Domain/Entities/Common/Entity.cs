@@ -10,8 +10,8 @@ namespace userMS.Domain.Entities.Common
     {
         public virtual TPrimaryKey Id { get; set; }
 
-        public DateTime CreatedAt { get; }
+        public DateTime CreatedAt { get; set; }
 
-        public virtual TPrimaryKey CreatedBy { get; }
+        public virtual TPrimaryKey CreatedBy { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using userMS.Application.DTOs;
 using userMS.Application.Services;
-using userMS.Domain.Entities;
 
 namespace userMS.API.Controllers
 {
@@ -16,22 +16,16 @@ namespace userMS.API.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<User>))]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<UserDto>))]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userService.GetAllUsersAsync();
+            var users = await _userService.GetAllUsersAsync();   
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
             return Ok(users);
         }
 
         [HttpGet("id/{id}")]
-        [ProducesResponseType(200, Type = typeof(User))]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(200, Type = typeof(UserDto))]
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetUserById(string id)
         {
@@ -42,17 +36,11 @@ namespace userMS.API.Controllers
                 return NotFound();
             }
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             return Ok(user);
         }
 
         [HttpGet("username/{username}")]
-        [ProducesResponseType(200, Type = typeof(User))]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(200, Type = typeof(UserDto))]
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetUserByUsername(string username)
         {
@@ -63,17 +51,11 @@ namespace userMS.API.Controllers
                 return NotFound();
             }
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             return Ok(user);
         }
 
         [HttpGet("email/{email}")]
-        [ProducesResponseType(200, Type = typeof(User))]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(200, Type = typeof(UserDto))]
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetUserByEmailAddress(string email)
         {
@@ -84,17 +66,11 @@ namespace userMS.API.Controllers
                 return NotFound();
             }
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             return Ok(user);
         }
 
         [HttpGet("phoneNo/{phoneNo}")]
-        [ProducesResponseType(200, Type = typeof(User))]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(200, Type = typeof(UserDto))]
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetUserByPhoneNumber(string phoneNo)
         {
@@ -105,52 +81,37 @@ namespace userMS.API.Controllers
                 return NotFound();
             }
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             return Ok(user);
         }
 
         [HttpPost("add/one")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> CreateUser([FromBody] User user)
+        public async Task<IActionResult> CreateUser([FromBody] UserDto userDto)
         {
-            var result = await _userService.AddUserAsync(user);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var result = await _userService.AddUserAsync(userDto);
 
             return Ok(result);
         }
 
         [HttpPost("add/batch")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> CreateUsers([FromBody] IEnumerable<User> users)
+        public async Task<IActionResult> CreateUsers([FromBody] IEnumerable<UserDto> userDtos)
         {
-            return Ok(await _userService.AddUsersAsync(users));
+            var result = await _userService.AddUsersAsync(userDtos);
+
+            return Ok(result);
         }
 
         [HttpPut("update/one")]
-        [ProducesResponseType(200, Type = typeof(User))]
+        [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> UpdateUser([FromBody] User user)
+        public async Task<IActionResult> UpdateUser([FromBody] UserDto userDto)
         {
-            var updateResult = await _userService.UpdateUserAsync(user);
+            var updateResult = await _userService.UpdateUserAsync(userDto);
 
             if (updateResult == null)
             {
                 return NotFound();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
             }
 
             return Ok(updateResult);
@@ -158,16 +119,10 @@ namespace userMS.API.Controllers
         }
 
         [HttpPut("update/batch")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<User>))]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateUsers([FromBody] IEnumerable<User> users)
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpdateUsers([FromBody] IEnumerable<UserDto> userDtos)
         {
-            var updateResult = await _userService.UpdateUsersAsync(users);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var updateResult = await _userService.UpdateUsersAsync(userDtos);
 
             return Ok(updateResult);
         }
@@ -175,9 +130,9 @@ namespace userMS.API.Controllers
         [HttpDelete("delete/one")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteUser(User user)
-        {
-            var deleteResult = await _userService.DeleteUserAsync(user);
+        public async Task<IActionResult> DeleteUser(UserDto userDto)
+        {   
+            var deleteResult = await _userService.DeleteUserAsync(userDto);
 
             if (!deleteResult)
             {
@@ -205,9 +160,9 @@ namespace userMS.API.Controllers
         [HttpDelete("delete/batch")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> DeleteUsers([FromBody] IEnumerable<User> users)
+        public async Task<IActionResult> DeleteUsers([FromBody] IEnumerable<UserDto> userDtos)
         {
-            var deleteResult = await _userService.DeleteUsersAsync(users);
+            var deleteResult = await _userService.DeleteUsersAsync(userDtos);
 
             if (!deleteResult)
             {

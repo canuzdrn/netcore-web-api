@@ -1,38 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq.Expressions;
+using userMS.Application.DTOs;
 using userMS.Domain.Entities;
 
 namespace userMS.Application.Services
 {
     public interface IUserService
     {
-        Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<IEnumerable<UserDto>> GetAllUsersAsync();
 
-        Task<User> GetUserByIdAsync(string id);
+        Task<UserDto> GetUserByIdAsync(string id);
 
-        Task<User> GetUserByUsernameAsync(string username);
+        Task<UserDto> GetUserByUsernameAsync(string username);
 
-        Task<User> GetUserByEmailAddressAsync(string email);
+        Task<UserDto> GetUserByEmailAddressAsync(string email);
 
-        Task<User> GetUserByPhoneNumberAsync(string phoneNo);
+        Task<UserDto> GetUserByPhoneNumberAsync(string phoneNo);
 
-        Task<User> AddUserAsync(User user);
+        Task<UserDto> AddUserAsync(UserDto userDto);
 
-        Task<IEnumerable<User>> AddUsersAsync(IEnumerable<User> users);
+        Task<IEnumerable<UserDto>> AddUsersAsync(IEnumerable<UserDto> userDtos);
 
-        Task<User> UpdateUserAsync(User user);
+        Task<UserDto> UpdateUserAsync(UserDto userDto);
 
-        Task<IEnumerable<User>> UpdateUsersAsync(IEnumerable<User> users);
+        Task<IEnumerable<UserDto>> UpdateUsersAsync(IEnumerable<UserDto> userDtos);
 
-        Task<bool> DeleteUserAsync(User user);
+        Task<bool> DeleteUserAsync(UserDto userDto);
 
         Task<bool> DeleteUserByIdAsync(string id);
 
-        Task<bool> DeleteUsersAsync(IEnumerable<User> users);
+        Task<bool> DeleteUsersAsync(IEnumerable<UserDto> userDtos);
 
         Task<IEnumerable<User>> FindByAsync(Expression<Func<User, bool>> predicate);
 
