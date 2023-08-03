@@ -4,6 +4,7 @@ using userMS.Application.DTOs;
 using userMS.Application.Repositories;
 using userMS.Application.Services;
 using userMS.Domain.Entities;
+using userMS.Domain.Exceptions;
 
 namespace userMS.Persistence.Services
 {
@@ -22,7 +23,6 @@ namespace userMS.Persistence.Services
         {
             var user = _mapper.Map<User>(userDto);
 
-            // if no error is thrown user can be registered (boolean might be used)
             await IsExistIdenticalInfo(user);
 
             await _repository.AddAsync(user);
@@ -34,10 +34,22 @@ namespace userMS.Persistence.Services
         {
             var users = _mapper.Map<List<User>>(userDtos);
 
+            bool allUnique = !users.GroupBy(u => u.Id).Any(g => g.Count() > 1)
+                && !users.GroupBy(u => u.UserName).Any(g => g.Count() > 1)
+                && !users.GroupBy(u => u.Email).Any(g => g.Count() > 1)
+                && !users.GroupBy(u => u.PhoneNo).Any(g => g.Count() > 1);
+
+            if (!allUnique)
+            {
+                throw new BadRequestException("Multiple users cannot share a unique property !");
+            }
+
             foreach (User user in users)
             {
+                // ensures id, username, email, phone no to be unique
                 await IsExistIdenticalInfo(user);
             }
+
             await _repository.AddRangeAsync(users);
 
             return _mapper.Map<List<UserDto>>(users);
@@ -51,9 +63,10 @@ namespace userMS.Persistence.Services
             // with the given id but not with the given user info such as
             // username, email address etc.
             var isExists = await IsUserExists(user);
+
             if (!isExists)
             {
-                return false;
+                throw new NotFoundException("Provided user with the given information does not exist !");
             }
 
             return await _repository.DeleteAsync(user);
@@ -62,7 +75,15 @@ namespace userMS.Persistence.Services
         public async Task<bool> DeleteUserByIdAsync(string id)
         {
             var guid = Guid.Parse(id);
-            return await _repository.DeleteByIdAsync(guid);
+
+            var deleteResult = await _repository.DeleteByIdAsync(guid);
+
+            if (!deleteResult)
+            {
+                throw new NotFoundException("User with the provided Id is does not exist !");
+            }
+
+            return deleteResult;
         }
 
         public async Task<bool> DeleteUsersAsync(IEnumerable<UserDto> userDtos)
@@ -73,9 +94,10 @@ namespace userMS.Persistence.Services
             {
                 if (!(await IsUserExists(user)))
                 {
-                    return false;
+                    throw new NotFoundException("At least one user from the provided user list does not exist !");
                 }
             }
+
             return await _repository.DeleteRangeAsync(users);
         }
 
@@ -95,6 +117,12 @@ namespace userMS.Persistence.Services
         {
             var filterResult = await _repository.FindByAsync(u => u.UserName == username);
             var user = filterResult.FirstOrDefault();
+
+            if(user == null)
+            {
+                throw new NotFoundException("User with the provided username does not exist !");
+            }
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -102,6 +130,12 @@ namespace userMS.Persistence.Services
         {
             var filterResult = await _repository.FindByAsync(u => u.Email == email);
             var user = filterResult.FirstOrDefault();
+
+            if (user == null)
+            {
+                throw new NotFoundException("User with the provided email address does not exist !");
+            }
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -111,6 +145,11 @@ namespace userMS.Persistence.Services
 
             var user = await _repository.GetByIdAsync(guid);
 
+            if (user == null)
+            {
+                throw new NotFoundException("User with the provided Id does not exist !");
+            }
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -118,6 +157,12 @@ namespace userMS.Persistence.Services
         {
             var filterResult = await _repository.FindByAsync(u => u.PhoneNo == phoneNo);
             var user = filterResult.FirstOrDefault();
+
+            if (user == null)
+            {
+                throw new NotFoundException("User with the provided phone number does not exist !");
+            }
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -129,8 +174,7 @@ namespace userMS.Persistence.Services
 
             if (!isExist)
             {
-                // may throw an error instead of returning null
-                return null;
+                throw new NotFoundException("User tried to be updated does not exist !");
             }
 
             var updatedUser = await _repository.UpdateAsync(user);
@@ -141,12 +185,19 @@ namespace userMS.Persistence.Services
         public async Task<IEnumerable<UserDto>> UpdateUsersAsync(IEnumerable<UserDto> userDtos)
         {
             var users = _mapper.Map<List<User>>(userDtos);
+            
+            // if every id of the provided users is not unique
+            // there exist a duplicate key among them
+            if (users.GroupBy(u => u.Id).Any(g => g.Count() > 1))
+            {
+                throw new BadRequestException("Cannot update the same user multiple times in a single operation !");
+            }
 
             foreach (User user in users)
             {
                 if (!(await _repository.AnyAsync(u => u.Id == user.Id)))
                 {
-                    throw new ArgumentException("At least one of the provided users does not exist !");
+                    throw new NotFoundException("At least one of the provided users does not exist !");
                 }
             }
 
@@ -164,19 +215,19 @@ namespace userMS.Persistence.Services
 
             if (idExists)
             {
-                throw new ArgumentException("There exist a user with the same Id !");
+                throw new BadRequestException("There exist a user with the same Id !");
             }
             else if (userNameExists)
             {
-                throw new ArgumentException("There exist a user with the same username !");
+                throw new BadRequestException("There exist a user with the same username !");
             }
             else if (phoneNoExists)
             {
-                throw new ArgumentException("There exist a user with the same phone number !");
+                throw new BadRequestException("There exist a user with the same phone number !");
             }
             else if (emailExists)
             {
-                throw new ArgumentException("There exist a user with the same email address !");
+                throw new BadRequestException("There exist a user with the same email address !");
             }
 
         }

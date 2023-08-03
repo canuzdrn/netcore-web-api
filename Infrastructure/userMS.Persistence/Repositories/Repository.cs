@@ -1,11 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using userMS.Application.Repositories;
 using userMS.Domain.Entities.Common;
 using userMS.Persistence.Data;

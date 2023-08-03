@@ -26,66 +26,42 @@ namespace userMS.API.Controllers
 
         [HttpGet("id/{id}")]
         [ProducesResponseType(200, Type = typeof(UserDto))]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> GetUserById(string id)
         {
             var user = await _userService.GetUserByIdAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
 
             return Ok(user);
         }
 
         [HttpGet("username/{username}")]
         [ProducesResponseType(200, Type = typeof(UserDto))]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> GetUserByUsername(string username)
         {
             var user = await _userService.GetUserByUsernameAsync(username);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
 
             return Ok(user);
         }
 
         [HttpGet("email/{email}")]
         [ProducesResponseType(200, Type = typeof(UserDto))]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> GetUserByEmailAddress(string email)
         {
             var user = await _userService.GetUserByEmailAddressAsync(email);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
 
             return Ok(user);
         }
 
         [HttpGet("phoneNo/{phoneNo}")]
         [ProducesResponseType(200, Type = typeof(UserDto))]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> GetUserByPhoneNumber(string phoneNo)
         {
             var user = await _userService.GetUserByPhoneNumberAsync(phoneNo);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
 
             return Ok(user);
         }
 
         [HttpPost("add/one")]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> CreateUser([FromBody] UserDto userDto)
         {
             var result = await _userService.AddUserAsync(userDto);
@@ -94,7 +70,7 @@ namespace userMS.API.Controllers
         }
 
         [HttpPost("add/batch")]
-        [ProducesResponseType(200)]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> CreateUsers([FromBody] IEnumerable<UserDto> userDtos)
         {
             var result = await _userService.AddUsersAsync(userDtos);
@@ -104,15 +80,9 @@ namespace userMS.API.Controllers
 
         [HttpPut("update/one")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> UpdateUser([FromBody] UserDto userDto)
         {
             var updateResult = await _userService.UpdateUserAsync(userDto);
-
-            if (updateResult == null)
-            {
-                return NotFound();
-            }
 
             return Ok(updateResult);
 
@@ -129,45 +99,27 @@ namespace userMS.API.Controllers
 
         [HttpDelete("delete/one")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteUser(UserDto userDto)
         {   
-            var deleteResult = await _userService.DeleteUserAsync(userDto);
-
-            if (!deleteResult)
-            {
-                return NotFound();
-            }
+            await _userService.DeleteUserAsync(userDto);
 
             return NoContent();
         }
 
         [HttpDelete("delete/one/{id}")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteUserById(string id)
         {
-            var deleteResult = await _userService.DeleteUserByIdAsync(id);
-
-            if (!deleteResult)
-            {
-                return NotFound();
-            }
+            await _userService.DeleteUserByIdAsync(id);
 
             return NoContent();
         }
 
         [HttpDelete("delete/batch")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteUsers([FromBody] IEnumerable<UserDto> userDtos)
         {
-            var deleteResult = await _userService.DeleteUsersAsync(userDtos);
-
-            if (!deleteResult)
-            {
-                return NotFound();
-            }
+            await _userService.DeleteUsersAsync(userDtos);
 
             return NoContent();
         }
