@@ -6,6 +6,9 @@ namespace userMS.Application.Validators
     public class UserDtoValidator : AbstractValidator<UserDto>
     {
         public UserDtoValidator() {
+
+            RuleLevelCascadeMode = CascadeMode.Stop;
+
             RuleFor(dto => dto.Id)
                 .NotNull().WithMessage("Id field cannot be null")
                 .NotEmpty().WithMessage("Id is required")

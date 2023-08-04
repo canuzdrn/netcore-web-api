@@ -26,11 +26,14 @@ builder.Services.AddControllers(options =>
     // configured option to handle the behaviour of invalid model state
     options.InvalidModelStateResponseFactory = context =>
     {
-        var errors = context.ModelState.Values
-        .SelectMany(x => x.Errors)
-        .Select(e => JsonSerializer.Deserialize<ValidationError>(e.ErrorMessage));
+        var errors = context.ModelState.Values.Where(state => state.Errors.Count > 0)
+        .SelectMany(state => state.Errors)
+        .Select(state => state.ErrorMessage);
 
-        return new BadRequestObjectResult(errors);
+        return new BadRequestObjectResult(new
+        {
+            ValidationFailures = errors
+        });
     };
 })
     .AddFluentValidation(config =>

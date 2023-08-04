@@ -19,15 +19,9 @@ namespace userMS.Application.Validators
         {
             var validationFailures = result.Errors
                 .Select(error => 
-                new ValidationFailure(error.PropertyName, SerializeError(error)));
+                new ValidationFailure(error.PropertyName, error.ErrorMessage));
 
             return new ValidationResult(validationFailures);
-        }
-
-        private static string SerializeError(ValidationFailure failure)
-        {
-            var error = new ValidationError(failure.ErrorMessage);
-            return JsonSerializer.Serialize(error);
         }
     }
 }
