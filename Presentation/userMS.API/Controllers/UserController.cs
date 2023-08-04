@@ -66,8 +66,6 @@ namespace userMS.API.Controllers
         {
             var result = await _userService.AddUserAsync(userDto);
 
-            var state = ModelState;
-
             return Ok(result);
         }
 

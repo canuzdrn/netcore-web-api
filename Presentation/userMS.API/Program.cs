@@ -26,9 +26,9 @@ builder.Services.AddControllers(options =>
     // configured option to handle the behaviour of invalid model state
     options.InvalidModelStateResponseFactory = context =>
     {
-        var errors = context.ModelState.Values.Where(state => state.Errors.Count > 0)
-        .SelectMany(state => state.Errors)
-        .Select(state => state.ErrorMessage);
+        var errors = context.ModelState
+        .ToDictionary(s => s.Key, s => s.Value.Errors
+        .Select(e => e.ErrorMessage).First());
 
         return new BadRequestObjectResult(new
         {
