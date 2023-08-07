@@ -17,6 +17,15 @@ namespace userMS.Application.Mapper
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src.Id)));
             CreateMap<User, UserDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()));
+
+            CreateMap<RegisterUserDto, User>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.Parse(src.Id)));
+            CreateMap<User, RegisterUserDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()));
+
+            CreateMap<User, LoginUserDto>().ReverseMap();
+
+            CreateMap<User, LoginResponseDto>().ReverseMap();
         }
     }
 }

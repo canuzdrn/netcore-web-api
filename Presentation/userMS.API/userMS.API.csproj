@@ -7,12 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.9" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\userMS.Application\userMS.Application.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\userMS.Infrastructure\userMS.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Infrastructure\userMS.Persistence\userMS.Persistence.csproj" />
   </ItemGroup>
 

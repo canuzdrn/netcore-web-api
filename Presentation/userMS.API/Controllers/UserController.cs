@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using userMS.Application.DTOs;
 using userMS.Application.Services;
 
@@ -15,6 +16,7 @@ namespace userMS.API.Controllers
             _userService = userService;
         }
 
+        [Authorize] // this authorization attribute is added to test authentication with bearer token
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<UserDto>))]
         public async Task<IActionResult> GetAllUsers()

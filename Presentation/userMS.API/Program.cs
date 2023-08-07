@@ -1,14 +1,18 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
-using System.Text.Json;
+using System.Text;
 using userMS.Application.DTOs;
 using userMS.Application.Filters;
 using userMS.Application.Repositories;
 using userMS.Application.Services;
 using userMS.Application.Validators;
 using userMS.Domain.Entities;
+using userMS.Infrastructure.Helpers;
+using userMS.Infrastructure.Services;
 using userMS.Persistence.Data;
 using userMS.Persistence.Repositories;
 using userMS.Persistence.Services;
@@ -23,7 +27,7 @@ builder.Services.AddControllers(options =>
 })
     .ConfigureApiBehaviorOptions(options =>
 {
-    // configured option to handle the behaviour of invalid model state
+    // configured option to handle the behaviour of invalid model state - failed validation
     options.InvalidModelStateResponseFactory = context =>
     {
         var errors = context.ModelState
@@ -46,9 +50,14 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// adding database configuration
+// adding database configuration (in order to use option pattern)
 builder.Services.Configure<DatabaseSettings>(
     builder.Configuration.GetSection("MyDb")
+    );
+
+// adding jwt configuration (in order to use option pattern)
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("JwtConfig")
     );
 
 // registering the repositories
@@ -58,15 +67,34 @@ builder.Services.AddScoped<IRepository<User, Guid>, Repository<User, Guid>>();
 
 // registering services
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // auto-mapper DI
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // fluent validator DI for UserDto validation
 builder.Services.AddTransient<IValidator<UserDto>, UserDtoValidator>();
+builder.Services.AddTransient<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
 
 // DI for validator interceptor
 builder.Services.AddTransient<IValidatorInterceptor, ValidatorInterceptor>();
+
+
+// registering services for authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtConfig:Secret"])),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                    };
+                });
+
+
 
 var app = builder.Build();
 
@@ -79,6 +107,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
