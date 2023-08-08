@@ -5,6 +5,6 @@ namespace userMS.Application.Services
 {
     public interface ITokenService
     {
-        public string GenerateToken(LoginUserDto loginDto);
+        public string GenerateToken(LoginResponseDto loginDto);
     }
 }

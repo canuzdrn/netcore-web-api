@@ -22,12 +22,12 @@ namespace userMS.Persistence.Services
 
         public async Task<LoginResponseDto> LoginUserAsync(LoginUserDto userLog)
         {
-            var userExist = await _repository.AnyAsync(u => u.UserName == userLog.UserName);
+            var userExist = await _repository.AnyAsync(u => u.Email == userLog.Email);
 
             if (!userExist)
                 throw new BadRequestException("Invalid Credentials, user does not exist !");
 
-            var result = await _repository.FindByAsync(u => u.UserName == userLog.UserName);
+            var result = await _repository.FindByAsync(u => u.Email == userLog.Email);
 
             var user = result.FirstOrDefault();
 
@@ -38,7 +38,7 @@ namespace userMS.Persistence.Services
 
             var resp = _mapper.Map<LoginResponseDto>(user);
 
-            resp.Token = _tokenService.GenerateToken(userLog);
+            resp.Token = _tokenService.GenerateToken(resp);
 
             return resp;
 

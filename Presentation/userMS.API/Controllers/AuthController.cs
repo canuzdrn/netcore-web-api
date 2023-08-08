@@ -9,10 +9,12 @@ namespace userMS.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IEmailService _emailService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IEmailService emailService)
         {
             _authService = authService;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -20,6 +22,9 @@ namespace userMS.API.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterUserDto registerDto)
         {
             var result = await _authService.RegisterUserAsync(registerDto);
+
+            // email
+            await _emailService.SendRegisterEmailAsync(registerDto.Email);
 
             return Ok(result);
         }
@@ -29,6 +34,9 @@ namespace userMS.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginUserDto loginDto)
         {
             var result = await _authService.LoginUserAsync(loginDto);
+
+            // email
+            await _emailService.SendLoginEmailAsync(loginDto.Email);
 
             return Ok(result);
         }

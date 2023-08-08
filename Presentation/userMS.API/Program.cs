@@ -60,6 +60,17 @@ builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtConfig")
     );
 
+// adding email settings configuration (in order to use option pattern)
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings")
+    );
+
+
+// adding email content configuration (in order to use option pattern)
+builder.Services.Configure<EmailContent>(
+    builder.Configuration.GetSection("EmailContent")
+    );
+
 // registering the repositories
 // adding data repositories to the dependency injection container
 builder.Services.AddScoped<IRepository<User, Guid>, Repository<User, Guid>>();
@@ -69,6 +80,7 @@ builder.Services.AddScoped<IRepository<User, Guid>, Repository<User, Guid>>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // auto-mapper DI
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -107,6 +119,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// authentication middleware will examine the incoming request for tokens
 app.UseAuthentication();
 app.UseAuthorization();
 

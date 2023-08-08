@@ -16,7 +16,7 @@ namespace userMS.Infrastructure.Services
         {
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSettings.Value.Secret));
         }
-        public string GenerateToken(LoginUserDto loginDto)
+        public string GenerateToken(LoginResponseDto loginDto)
         {
             var claims = new List<Claim>
             {
