@@ -36,7 +36,9 @@ namespace userMS.API.Controllers
             var result = await _authService.LoginUserAsync(loginDto);
 
             // email
-            await _emailService.SendLoginEmailAsync(loginDto.Email);
+            var userEmail = await _authService.GetLoggedInEmailAsync(loginDto);
+
+            await _emailService.SendLoginEmailAsync(userEmail);
 
             return Ok(result);
         }

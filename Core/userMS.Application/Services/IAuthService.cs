@@ -7,5 +7,7 @@ namespace userMS.Application.Services
         Task<RegisterUserDto> RegisterUserAsync(RegisterUserDto userReg);
 
         Task<LoginResponseDto> LoginUserAsync(LoginUserDto userLog);
+
+        Task<string> GetLoggedInEmailAsync(LoginUserDto userLog);
     }
 }

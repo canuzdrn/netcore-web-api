@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using System.Text.RegularExpressions;
 using userMS.Application.DTOs;
 using userMS.Application.Repositories;
 using userMS.Application.Services;
@@ -22,12 +23,14 @@ namespace userMS.Persistence.Services
 
         public async Task<LoginResponseDto> LoginUserAsync(LoginUserDto userLog)
         {
-            var userExist = await _repository.AnyAsync(u => u.Email == userLog.Email);
+            var email = await GetLoggedInEmailAsync(userLog);
+
+            var userExist = await _repository.AnyAsync(u => u.Email == email);
 
             if (!userExist)
                 throw new BadRequestException("Invalid Credentials, user does not exist !");
 
-            var result = await _repository.FindByAsync(u => u.Email == userLog.Email);
+            var result = await _repository.FindByAsync(u => u.Email == email);
 
             var user = result.FirstOrDefault();
 
@@ -53,6 +56,38 @@ namespace userMS.Persistence.Services
             await _repository.AddAsync(user);
 
             return _mapper.Map<RegisterUserDto>(user);
+        }
+
+        public async Task<string> GetLoggedInEmailAsync(LoginUserDto userLog)
+        {
+            var identifier = userLog.Identifier;
+
+            if (IsEmail(identifier))
+            {
+                return identifier;
+            }
+
+            var loggedUser = await _repository.FindByAsync(u => u.UserName == userLog.Identifier);
+
+            if (!loggedUser.Any())
+            {
+                throw new BadRequestException("Invalid Credentials, user does not exist !");
+            }
+
+
+            return loggedUser.FirstOrDefault().Email;
+        }
+
+        public bool IsEmail(string identifier)
+        {
+            Regex emailRegex = new Regex(@"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$");
+
+            if (emailRegex.IsMatch(identifier))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public async Task IsExistIdenticalInfoAsync(User user)

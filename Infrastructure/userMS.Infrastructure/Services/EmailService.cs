@@ -13,6 +13,8 @@ namespace userMS.Infrastructure.Services
         private readonly IOptions<EmailSettings> _emailSettings;
         private readonly IOptions<EmailContent> _emailContent;
 
+        private const int PortTLS = 587;
+
         public EmailService(IOptions<EmailSettings> emailSettings, IOptions<EmailContent> emailContent)
         {
             _emailSettings = emailSettings;
@@ -40,10 +42,10 @@ namespace userMS.Infrastructure.Services
             email.From.Add(MailboxAddress.Parse(_emailSettings.Value.Username));
             email.To.Add(MailboxAddress.Parse(to));
             email.Subject = _emailContent.Value.LoginSubject;
-            email.Body = new TextPart(TextFormat.Html) { Text = (_emailContent.Value.LoginBody + "\r\n" + $"{DateTime.Now}") };
+            email.Body = new TextPart(TextFormat.Html) { Text = (_emailContent.Value.LoginBody + "<br/>" + $" {DateTime.Now} ") };
 
             var smtp = new SmtpClient();
-            smtp.Connect(_emailSettings.Value.Host, 587, SecureSocketOptions.StartTls);
+            smtp.Connect(_emailSettings.Value.Host, PortTLS, SecureSocketOptions.StartTls);
             smtp.Authenticate(_emailSettings.Value.Username, _emailSettings.Value.Password);
             await smtp.SendAsync(email);
             smtp.Disconnect(true);

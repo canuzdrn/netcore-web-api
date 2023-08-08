@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using System.Text.RegularExpressions;
 using userMS.Application.DTOs;
 
 namespace userMS.Application.Validators
@@ -19,7 +20,9 @@ namespace userMS.Application.Validators
                 .NotNull().WithMessage("Username cannot be null")
                 .NotEmpty().WithMessage("Username is required")
                 .MaximumLength(25).WithMessage("Username cannot exceed 25 characters")
-                .MinimumLength(5).WithMessage("Username cannot be shorter than 5 characters");
+                .MinimumLength(5).WithMessage("Username cannot be shorter than 5 characters")
+                .Must(UserName => !Regex.IsMatch(UserName, @"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"))
+                .WithMessage("Username cannot be in email format.");
 
             RuleFor(dto => dto.Password)
                 .NotNull().WithMessage("Your password cannot be null")
