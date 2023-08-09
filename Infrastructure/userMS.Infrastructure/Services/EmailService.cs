@@ -30,10 +30,11 @@ namespace userMS.Infrastructure.Services
             email.Body = new TextPart(TextFormat.Html) { Text = _emailContent.Value.RegisterBody };
 
             var smtp = new SmtpClient();
-            smtp.Connect(_emailSettings.Value.Host, 587, SecureSocketOptions.StartTls);
+            smtp.Connect(_emailSettings.Value.Host, PortTLS, SecureSocketOptions.StartTls);
             smtp.Authenticate(_emailSettings.Value.Username, _emailSettings.Value.Password);
             await smtp.SendAsync(email);
             smtp.Disconnect(true);
+            smtp.Dispose();
         }
 
         public async Task SendLoginEmailAsync(string to)
@@ -49,6 +50,7 @@ namespace userMS.Infrastructure.Services
             smtp.Authenticate(_emailSettings.Value.Username, _emailSettings.Value.Password);
             await smtp.SendAsync(email);
             smtp.Disconnect(true);
+            smtp.Dispose();
         }
     }
 }

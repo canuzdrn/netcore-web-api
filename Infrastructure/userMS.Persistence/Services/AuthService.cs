@@ -62,13 +62,16 @@ namespace userMS.Persistence.Services
         {
             var identifier = userLog.Identifier;
 
+            // if provided identifier is email return it directly
             if (IsEmail(identifier))
             {
                 return identifier;
             }
 
+            // if identifier is not email, it means user provided his username
             var loggedUser = await _repository.FindByAsync(u => u.UserName == userLog.Identifier);
 
+            // if user with the provided username is not found, throw bad credentials
             if (!loggedUser.Any())
             {
                 throw new BadRequestException("Invalid Credentials, user does not exist !");
