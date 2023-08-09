@@ -12,24 +12,25 @@ namespace userMS.Application.Filters
     {
         public void OnException(ExceptionContext context)
         {
-            if (context.Exception is NotFoundException notFoundException)
+            switch (context.Exception)
             {
-                context.Result = new NotFoundObjectResult(notFoundException.Message);
-                context.ExceptionHandled = true;
-            }
-            else if (context.Exception is BadRequestException badRequestException)
-            {
-                context.Result = new BadRequestObjectResult(badRequestException.Message);
-                context.ExceptionHandled = true;
-            }
-            else
-            {
-                // for other unhandled exceptions, return a default error response
-                context.Result = new ObjectResult("An unexpected error occurred !")
-                {
-                    StatusCode = 500
-                };
-                context.ExceptionHandled = true;
+                case NotFoundException exception:
+                    context.Result = new NotFoundObjectResult(exception.Message);
+                    context.ExceptionHandled = true;
+                    break;
+
+                case BadRequestException exception:
+                    context.Result = new BadRequestObjectResult(exception.Message);
+                    context.ExceptionHandled = true;
+                    break;
+
+                default:
+                    context.Result = new ObjectResult("An unexpected error occurred !")
+                    {
+                        StatusCode = 500
+                    };
+                    context.ExceptionHandled = true;
+                    break;
             }
         }
     }

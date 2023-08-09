@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using System.Reflection;
 using System.Text;
 using userMS.Application.DTOs;
@@ -100,6 +103,11 @@ builder.Services.Configure<EmailContent>(
     builder.Configuration.GetSection("EmailContent")
     );
 
+
+//
+BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
+//
+
 // registering the repositories
 // adding data repositories to the dependency injection container
 builder.Services.AddScoped<IRepository<User, Guid>, Repository<User, Guid>>();
@@ -143,7 +151,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.DefaultModelsExpandDepth(-1);
+    });
 }
 
 app.UseHttpsRedirection();
