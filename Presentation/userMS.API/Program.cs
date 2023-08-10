@@ -15,7 +15,7 @@ using userMS.Application.Repositories;
 using userMS.Application.Services;
 using userMS.Application.Validators;
 using userMS.Domain.Entities;
-using userMS.Infrastructure.Helpers;
+using userMS.Infrastructure.Com;
 using userMS.Infrastructure.Services;
 using userMS.Persistence.Data;
 using userMS.Persistence.Repositories;

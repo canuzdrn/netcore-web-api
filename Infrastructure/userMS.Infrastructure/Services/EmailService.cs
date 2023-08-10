@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
 using userMS.Application.Services;
-using userMS.Infrastructure.Helpers;
+using userMS.Infrastructure.Com;
 
 namespace userMS.Infrastructure.Services
 {

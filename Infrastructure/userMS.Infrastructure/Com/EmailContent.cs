@@ -1,4 +1,4 @@
-﻿namespace userMS.Infrastructure.Helpers
+﻿namespace userMS.Infrastructure.Com
 {
     public class EmailContent
     {

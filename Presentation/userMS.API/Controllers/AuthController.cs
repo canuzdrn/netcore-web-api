@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using userMS.Application.DTOs;
 using userMS.Application.Services;
+using userMS.Infrastructure.Statics;
 
 namespace userMS.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route(RoutingUrls.BaseRoute)]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -17,7 +18,7 @@ namespace userMS.API.Controllers
             _emailService = emailService;
         }
 
-        [HttpPost("register")]
+        [HttpPost(RoutingUrls.Auth.Register)]
         // add response type
         public async Task<IActionResult> Register([FromBody] RegisterUserDto registerDto)
         {
@@ -29,7 +30,7 @@ namespace userMS.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("login")]
+        [HttpPost(RoutingUrls.Auth.Login)]
         // add response type
         public async Task<IActionResult> Login([FromBody] LoginUserDto loginDto)
         {
