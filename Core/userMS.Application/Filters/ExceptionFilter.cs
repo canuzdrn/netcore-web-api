@@ -24,6 +24,11 @@ namespace userMS.Application.Filters
                     context.ExceptionHandled = true;
                     break;
 
+                case DuplicateEntityException exception:
+                    context.Result = new ConflictObjectResult(exception.Message);
+                    context.ExceptionHandled = true;
+                    break;
+
                 default:
                     context.Result = new ObjectResult("An unexpected error occurred !")
                     {

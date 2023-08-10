@@ -34,10 +34,10 @@ namespace userMS.Persistence.Services
 
             var user = result.FirstOrDefault();
 
-            if (user.Password != userLog.Password)
+            if (!BCrypt.Net.BCrypt.Verify(userLog.Password, user.Password))
                 throw new BadRequestException("Invalid Credentials, incorrect password !");
 
-            // if login successfull , initial token logic
+            // if login successfull , initialize token logic
 
             var resp = _mapper.Map<LoginResponseDto>(user);
 
@@ -49,9 +49,13 @@ namespace userMS.Persistence.Services
 
         public async Task<RegisterUserDto> RegisterUserAsync(RegisterUserDto userReg)
         {
+            string providedPassword = userReg.Password;
+
             var user = _mapper.Map<User>(userReg);
 
             await IsExistIdenticalInfoAsync(user);
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(providedPassword);
 
             await _repository.AddAsync(user);
 
@@ -101,15 +105,15 @@ namespace userMS.Persistence.Services
 
             if (userNameExists)
             {
-                throw new BadRequestException("There exist a user with the same username !");
+                throw new DuplicateEntityException("user", "Username", user.UserName);
             }
             else if (phoneNoExists)
             {
-                throw new BadRequestException("There exist a user with the same phone number !");
+                throw new DuplicateEntityException("user", "Phone No", user.PhoneNo);
             }
             else if (emailExists)
             {
-                throw new BadRequestException("There exist a user with the same email address !");
+                throw new DuplicateEntityException("user", "Email Address", user.Email);
             }
 
         }

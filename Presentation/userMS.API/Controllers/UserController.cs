@@ -28,7 +28,7 @@ namespace userMS.API.Controllers
 
         [HttpGet("id/{id}")]
         [ProducesResponseType(200, Type = typeof(UserDto))]
-        public async Task<IActionResult> GetUserById(string id)
+        public async Task<IActionResult> GetUserById(Guid id)
         {
             var user = await _userService.GetUserByIdAsync(id);
 
@@ -110,7 +110,7 @@ namespace userMS.API.Controllers
 
         [HttpDelete("delete/one/{id}")]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> DeleteUserById(string id)
+        public async Task<IActionResult> DeleteUserById(Guid id)
         {
             await _userService.DeleteUserByIdAsync(id);
 

@@ -41,7 +41,7 @@ namespace userMS.Persistence.Services
 
             if (!allUnique)
             {
-                throw new BadRequestException("Multiple users cannot share a unique property !");
+                throw new DuplicateEntityException("Multiple users cannot share a unique property !");
             }
 
             foreach (User user in users)
@@ -50,7 +50,7 @@ namespace userMS.Persistence.Services
                 await IsExistIdenticalInfo(user);
             }
 
-            await _repository.AddRangeAsync(users);
+            var result = await _repository.AddRangeAsync(users);
 
             return _mapper.Map<List<UserDto>>(users);
         }
@@ -72,11 +72,9 @@ namespace userMS.Persistence.Services
             return await _repository.DeleteAsync(user);
         }
 
-        public async Task<bool> DeleteUserByIdAsync(string id)
+        public async Task<bool> DeleteUserByIdAsync(Guid id)
         {
-            var guid = Guid.Parse(id);
-
-            var deleteResult = await _repository.DeleteByIdAsync(guid);
+            var deleteResult = await _repository.DeleteByIdAsync(id);
 
             if (!deleteResult)
             {
@@ -139,11 +137,9 @@ namespace userMS.Persistence.Services
             return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<UserDto> GetUserByIdAsync(string id)
+        public async Task<UserDto> GetUserByIdAsync(Guid id)
         {
-            var guid = Guid.Parse(id);
-
-            var user = await _repository.GetByIdAsync(guid);
+            var user = await _repository.GetByIdAsync(id);
 
             if (user == null)
             {
@@ -193,6 +189,15 @@ namespace userMS.Persistence.Services
                 throw new BadRequestException("Cannot update the same user multiple times in a single operation !");
             }
 
+            bool allUnique = !users.GroupBy(u => u.UserName).Any(g => g.Count() > 1)
+                && !users.GroupBy(u => u.Email).Any(g => g.Count() > 1)
+                && !users.GroupBy(u => u.PhoneNo).Any(g => g.Count() > 1);
+
+            if (!allUnique)
+            {
+                throw new DuplicateEntityException("Multiple users cannot share a unique property !");
+            }
+
             foreach (User user in users)
             {
                 if (!(await _repository.AnyAsync(u => u.Id == user.Id)))
@@ -215,19 +220,19 @@ namespace userMS.Persistence.Services
 
             if (idExists)
             {
-                throw new BadRequestException("There exist a user with the same Id !");
+                throw new DuplicateEntityException("user","Id",user.Id.ToString());
             }
             else if (userNameExists)
             {
-                throw new BadRequestException("There exist a user with the same username !");
+                throw new DuplicateEntityException("user", "Username", user.UserName);
             }
             else if (phoneNoExists)
             {
-                throw new BadRequestException("There exist a user with the same phone number !");
+                throw new DuplicateEntityException("user", "Phone No", user.PhoneNo);
             }
             else if (emailExists)
             {
-                throw new BadRequestException("There exist a user with the same email address !");
+                throw new DuplicateEntityException("user", "Email Address", user.Email);
             }
 
         }

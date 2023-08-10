@@ -8,7 +8,7 @@ namespace userMS.Application.Services
     {
         Task<IEnumerable<UserDto>> GetAllUsersAsync();
 
-        Task<UserDto> GetUserByIdAsync(string id);
+        Task<UserDto> GetUserByIdAsync(Guid id);
 
         Task<UserDto> GetUserByUsernameAsync(string username);
 
@@ -26,7 +26,7 @@ namespace userMS.Application.Services
 
         Task<bool> DeleteUserAsync(UserDto userDto);
 
-        Task<bool> DeleteUserByIdAsync(string id);
+        Task<bool> DeleteUserByIdAsync(Guid id);
 
         Task<bool> DeleteUsersAsync(IEnumerable<UserDto> userDtos);
 
