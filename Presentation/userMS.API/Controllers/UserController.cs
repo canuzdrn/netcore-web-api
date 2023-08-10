@@ -70,7 +70,7 @@ namespace userMS.API.Controllers
         {
             var result = await _userService.AddUserAsync(userDto);
 
-            return Created($"api/[controller]/username/{result.UserName}",result);
+            return Created($"api/User/username/{result.UserName}",result);
         }
 
         [HttpPost(RoutingUrls.User.BulkCreate)]
