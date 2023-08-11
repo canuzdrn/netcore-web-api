@@ -11,10 +11,12 @@ namespace userMS.Infrastructure.Services
 {
     public class TokenService : ITokenService
     {
+        private readonly IOptions<AppSettings> _options;
         private readonly SymmetricSecurityKey _key;
-        public TokenService(IOptions<JwtSettings> tokenSettings)
+        public TokenService(IOptions<AppSettings> options)
         {
-            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSettings.Value.Secret));
+            _options = options;
+            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Value.JwtSettings.Secret));
         }
         public string GenerateToken(LoginResponseDto loginDto)
         {

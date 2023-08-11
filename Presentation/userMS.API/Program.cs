@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
@@ -22,6 +23,8 @@ using userMS.Persistence.Repositories;
 using userMS.Persistence.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+ConfigurationManager configuration = builder.Configuration;
 
 // Add services to the container.
 // added global exception filter and validation tool
@@ -82,27 +85,14 @@ options.AddSecurityRequirement(
 
 
 
+builder.Services.Configure<AppSettings>(configuration);
+var appSettings = configuration.Get<AppSettings>();
+
+
 // adding database configuration (in order to use option pattern)
 builder.Services.Configure<DatabaseSettings>(
     builder.Configuration.GetSection("MyDb")
     );
-
-// adding jwt configuration (in order to use option pattern)
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("JwtConfig")
-    );
-
-// adding email settings configuration (in order to use option pattern)
-builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection("EmailSettings")
-    );
-
-
-// adding email content configuration (in order to use option pattern)
-builder.Services.Configure<EmailContent>(
-    builder.Configuration.GetSection("EmailContent")
-    );
-
 
 //
 BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
@@ -137,7 +127,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtConfig:Secret"])),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"])),
                         ValidateIssuer = false,
                         ValidateAudience = false,
                     };

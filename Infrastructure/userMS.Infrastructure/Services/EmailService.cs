@@ -10,28 +10,26 @@ namespace userMS.Infrastructure.Services
 {
     public class EmailService : IEmailService
     {
-        private readonly IOptions<EmailSettings> _emailSettings;
-        private readonly IOptions<EmailContent> _emailContent;
+        private readonly IOptions<AppSettings> _options;
 
         private const int PortTLS = 587;
 
-        public EmailService(IOptions<EmailSettings> emailSettings, IOptions<EmailContent> emailContent)
+        public EmailService(IOptions<AppSettings> options)
         {
-            _emailSettings = emailSettings;
-            _emailContent = emailContent;
+            _options = options;
         }
 
         public async Task SendRegisterEmailAsync(string to)
         {
             var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_emailSettings.Value.Username));
+            email.From.Add(MailboxAddress.Parse(_options.Value.EmailSettings.Username));
             email.To.Add(MailboxAddress.Parse(to));
-            email.Subject = _emailContent.Value.RegisterSubject;
-            email.Body = new TextPart(TextFormat.Html) { Text = _emailContent.Value.RegisterBody };
+            email.Subject = _options.Value.EmailContent.RegisterSubject;
+            email.Body = new TextPart(TextFormat.Html) { Text = _options.Value.EmailContent.RegisterBody };
 
             var smtp = new SmtpClient();
-            smtp.Connect(_emailSettings.Value.Host, PortTLS, SecureSocketOptions.StartTls);
-            smtp.Authenticate(_emailSettings.Value.Username, _emailSettings.Value.Password);
+            smtp.Connect(_options.Value.EmailSettings.Host, PortTLS, SecureSocketOptions.StartTls);
+            smtp.Authenticate(_options.Value.EmailSettings.Username, _options.Value.EmailSettings.Password);
             await smtp.SendAsync(email);
             smtp.Disconnect(true);
             smtp.Dispose();
@@ -40,14 +38,14 @@ namespace userMS.Infrastructure.Services
         public async Task SendLoginEmailAsync(string to)
         {
             var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(_emailSettings.Value.Username));
+            email.From.Add(MailboxAddress.Parse(_options.Value.EmailSettings.Username));
             email.To.Add(MailboxAddress.Parse(to));
-            email.Subject = _emailContent.Value.LoginSubject;
-            email.Body = new TextPart(TextFormat.Html) { Text = (_emailContent.Value.LoginBody + "<br/>" + $" {DateTime.Now} ") };
+            email.Subject = _options.Value.EmailContent.LoginSubject;
+            email.Body = new TextPart(TextFormat.Html) { Text = (_options.Value.EmailContent.LoginBody + "<br/>" + $" {DateTime.Now} ") };
 
             var smtp = new SmtpClient();
-            smtp.Connect(_emailSettings.Value.Host, PortTLS, SecureSocketOptions.StartTls);
-            smtp.Authenticate(_emailSettings.Value.Username, _emailSettings.Value.Password);
+            smtp.Connect(_options.Value.EmailSettings.Host, PortTLS, SecureSocketOptions.StartTls);
+            smtp.Authenticate(_options.Value.EmailSettings.Username, _options.Value.EmailSettings.Password);
             await smtp.SendAsync(email);
             smtp.Disconnect(true);
             smtp.Dispose();
