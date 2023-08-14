@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\userMS.Application\userMS.Application.csproj" />
-    <ProjectReference Include="..\userMS.Persistence\userMS.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

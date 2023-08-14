@@ -16,11 +16,11 @@ namespace userMS.Application.Validators
 
             RuleFor(dto => dto.Password)
                 .NotEmpty().WithMessage("Your password cannot be empty")
-                .MinimumLength(6).WithMessage("Your password length must be at least 6.")
-                .MaximumLength(16).WithMessage("Your password length must not exceed 16.")
-                .Matches(@"[A-Z]+").WithMessage("Your password must contain at least one uppercase letter.")
-                .Matches(@"[a-z]+").WithMessage("Your password must contain at least one lowercase letter.")
-                .Matches(@"[0-9]+").WithMessage("Your password must contain at least one number.");
+                .MinimumLength(6).WithMessage("Your password length must be at least 6 characters")
+                .MaximumLength(30).WithMessage("Your password length must not exceed 30 characters")
+                .Matches(@"[A-Z]+").WithMessage("Your password must contain at least one uppercase letter")
+                .Matches(@"[a-z]+").WithMessage("Your password must contain at least one lowercase letter")
+                .Matches(@"[0-9]+").WithMessage("Your password must contain at least one number");
 
             RuleFor(dto => dto.Email)
                 .NotEmpty().WithMessage("Email address is required")

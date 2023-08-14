@@ -5,6 +5,7 @@ using userMS.Application.Repositories;
 using userMS.Application.Services;
 using userMS.Domain.Entities;
 using userMS.Domain.Exceptions;
+using userMS.Infrastructure.Statics;
 
 namespace userMS.Persistence.Services
 {
@@ -28,14 +29,14 @@ namespace userMS.Persistence.Services
             var userExist = await _repository.AnyAsync(u => u.Email == email);
 
             if (!userExist)
-                throw new BadRequestException("Invalid Credentials, user does not exist !");
+                throw new BadRequestException(ErrorMessages.IncorrectUsernameProvided);
 
             var result = await _repository.FindByAsync(u => u.Email == email);
 
             var user = result.FirstOrDefault();
 
             if (!BCrypt.Net.BCrypt.Verify(userLog.Password, user.Password))
-                throw new BadRequestException("Invalid Credentials, incorrect password !");
+                throw new BadRequestException(ErrorMessages.IncorrectPasswordProvided);
 
             // if login successfull , initialize token logic
 
@@ -78,7 +79,7 @@ namespace userMS.Persistence.Services
             // if user with the provided username is not found, throw bad credentials
             if (!loggedUser.Any())
             {
-                throw new BadRequestException("Invalid Credentials, user does not exist !");
+                throw new BadRequestException(ErrorMessages.IncorrectUsernameProvided);
             }
 
 
@@ -105,15 +106,15 @@ namespace userMS.Persistence.Services
 
             if (userNameExists)
             {
-                throw new DuplicateEntityException("user", "Username", user.UserName);
+                throw new DuplicateEntityException(nameof(User), nameof(User.UserName), user.UserName);
             }
             else if (phoneNoExists)
             {
-                throw new DuplicateEntityException("user", "Phone No", user.PhoneNo);
+                throw new DuplicateEntityException(nameof(User), nameof(User.PhoneNo), user.PhoneNo);
             }
             else if (emailExists)
             {
-                throw new DuplicateEntityException("user", "Email Address", user.Email);
+                throw new DuplicateEntityException(nameof(User), nameof(User.Email), user.Email);
             }
 
         }

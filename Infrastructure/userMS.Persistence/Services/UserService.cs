@@ -5,6 +5,7 @@ using userMS.Application.Repositories;
 using userMS.Application.Services;
 using userMS.Domain.Entities;
 using userMS.Domain.Exceptions;
+using userMS.Infrastructure.Statics;
 
 namespace userMS.Persistence.Services
 {
@@ -41,7 +42,7 @@ namespace userMS.Persistence.Services
 
             if (!allUnique)
             {
-                throw new DuplicateEntityException("Multiple users cannot share a unique property !");
+                throw new DuplicateEntityException(ErrorMessages.IdenticalInfoInBulk);
             }
 
             foreach (User user in users)
@@ -66,7 +67,7 @@ namespace userMS.Persistence.Services
 
             if (!isExists)
             {
-                throw new NotFoundException("Provided user with the given information does not exist !");
+                throw new NotFoundException(ErrorMessages.UserNotFound);
             }
 
             return await _repository.DeleteAsync(user);
@@ -78,7 +79,7 @@ namespace userMS.Persistence.Services
 
             if (!deleteResult)
             {
-                throw new NotFoundException("User with the provided Id is does not exist !");
+                throw new NotFoundException(ErrorMessages.UserIdNotFound);
             }
 
             return deleteResult;
@@ -92,7 +93,7 @@ namespace userMS.Persistence.Services
             {
                 if (!(await IsUserExists(user)))
                 {
-                    throw new NotFoundException("At least one user from the provided user list does not exist !");
+                    throw new NotFoundException(ErrorMessages.UserNotFoundInBulk);
                 }
             }
 
@@ -118,7 +119,7 @@ namespace userMS.Persistence.Services
 
             if(user == null)
             {
-                throw new NotFoundException("User with the provided username does not exist !");
+                throw new NotFoundException(ErrorMessages.UsernameNotFound);
             }
 
             return _mapper.Map<UserDto>(user);
@@ -131,7 +132,7 @@ namespace userMS.Persistence.Services
 
             if (user == null)
             {
-                throw new NotFoundException("User with the provided email address does not exist !");
+                throw new NotFoundException(ErrorMessages.UserEmailNotFound);
             }
 
             return _mapper.Map<UserDto>(user);
@@ -143,7 +144,7 @@ namespace userMS.Persistence.Services
 
             if (user == null)
             {
-                throw new NotFoundException("User with the provided Id does not exist !");
+                throw new NotFoundException(ErrorMessages.UserIdNotFound);
             }
 
             return _mapper.Map<UserDto>(user);
@@ -156,7 +157,7 @@ namespace userMS.Persistence.Services
 
             if (user == null)
             {
-                throw new NotFoundException("User with the provided phone number does not exist !");
+                throw new NotFoundException(ErrorMessages.UserPhoneNumberNotFound);
             }
 
             return _mapper.Map<UserDto>(user);
@@ -170,7 +171,7 @@ namespace userMS.Persistence.Services
 
             if (!isExist)
             {
-                throw new NotFoundException("User tried to be updated does not exist !");
+                throw new NotFoundException(ErrorMessages.UserNotFound);
             }
 
             var updatedUser = await _repository.UpdateAsync(user);
@@ -186,7 +187,7 @@ namespace userMS.Persistence.Services
             // there exist a duplicate key among them
             if (users.GroupBy(u => u.Id).Any(g => g.Count() > 1))
             {
-                throw new BadRequestException("Cannot update the same user multiple times in a single operation !");
+                throw new BadRequestException(ErrorMessages.DuplicateUserInBulkUpdate);
             }
 
             bool allUnique = !users.GroupBy(u => u.UserName).Any(g => g.Count() > 1)
@@ -195,14 +196,14 @@ namespace userMS.Persistence.Services
 
             if (!allUnique)
             {
-                throw new DuplicateEntityException("Multiple users cannot share a unique property !");
+                throw new DuplicateEntityException(ErrorMessages.IdenticalInfoInBulk);
             }
 
             foreach (User user in users)
             {
                 if (!(await _repository.AnyAsync(u => u.Id == user.Id)))
                 {
-                    throw new NotFoundException("At least one of the provided users does not exist !");
+                    throw new NotFoundException(ErrorMessages.UserNotFoundInBulk);
                 }
             }
 
@@ -220,19 +221,19 @@ namespace userMS.Persistence.Services
 
             if (idExists)
             {
-                throw new DuplicateEntityException("user","Id",user.Id.ToString());
+                throw new DuplicateEntityException(nameof(User), nameof(User.Id), user.Id.ToString());
             }
             else if (userNameExists)
             {
-                throw new DuplicateEntityException("user", "Username", user.UserName);
+                throw new DuplicateEntityException(nameof(User), nameof(User.UserName), user.UserName);
             }
             else if (phoneNoExists)
             {
-                throw new DuplicateEntityException("user", "Phone No", user.PhoneNo);
+                throw new DuplicateEntityException(nameof(User), nameof(User.PhoneNo), user.PhoneNo);
             }
             else if (emailExists)
             {
-                throw new DuplicateEntityException("user", "Email Address", user.Email);
+                throw new DuplicateEntityException(nameof(User), nameof(User.Email), user.Email);
             }
 
         }

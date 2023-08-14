@@ -1,6 +1,4 @@
-﻿using ZstdSharp.Unsafe;
-
-namespace userMS.Infrastructure.Statics
+﻿namespace userMS.Infrastructure.Statics
 {
     public class RoutingUrls
     {
