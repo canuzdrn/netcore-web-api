@@ -115,6 +115,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // fluent validator DI for UserDto validation
 builder.Services.AddTransient<IValidator<UserDto>, UserDtoValidator>();
 builder.Services.AddTransient<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
+builder.Services.AddTransient<IValidator<LoginUserDto>, LoginUserDtoValidator>();
 
 // DI for validator interceptor
 builder.Services.AddTransient<IValidatorInterceptor, ValidatorInterceptor>();
