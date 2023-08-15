@@ -120,6 +120,9 @@ builder.Services.AddTransient<IValidator<LoginUserDto>, LoginUserDtoValidator>()
 // DI for validator interceptor
 builder.Services.AddTransient<IValidatorInterceptor, ValidatorInterceptor>();
 
+// register cache service
+builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
+
 
 // registering services for authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

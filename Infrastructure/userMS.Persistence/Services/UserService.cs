@@ -12,11 +12,13 @@ namespace userMS.Persistence.Services
     public class UserService : IUserService
     {
         private readonly IRepository<User, Guid> _repository;
+        private readonly IRedisCacheService _cache;
         private readonly IMapper _mapper;
 
-        public UserService(IRepository<User, Guid> repository, IMapper mapper)
+        public UserService(IRepository<User, Guid> repository, IRedisCacheService cache,IMapper mapper)
         {
             _repository = repository;
+            _cache = cache;
             _mapper = mapper;
         }
 
@@ -27,6 +29,10 @@ namespace userMS.Persistence.Services
             await IsExistIdenticalInfo(user);
 
             await _repository.AddAsync(user);
+
+            // cache the newly added user
+            var lifeTime = TimeSpan.FromMinutes(10);
+            await _cache.SetAsync<User>(user.Id.ToString(), user, lifeTime);
 
             return _mapper.Map<UserDto>(user);
         }
@@ -70,11 +76,27 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UserNotFound);
             }
 
+            var cacheKey = user.Id.ToString();
+
+            // delete user if it is cached
+            if (await _cache.HasKeyValue(cacheKey))
+            {
+                await _cache.DeleteAsync(cacheKey);
+            }
+
             return await _repository.DeleteAsync(user);
         }
 
         public async Task<bool> DeleteUserByIdAsync(Guid id)
         {
+            var cacheKey = id.ToString();
+
+            // delete user if it is cached
+            if (await _cache.HasKeyValue(cacheKey))
+            {
+                await _cache.DeleteAsync(cacheKey);
+            }
+
             var deleteResult = await _repository.DeleteByIdAsync(id);
 
             if (!deleteResult)
@@ -122,6 +144,12 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UsernameNotFound);
             }
 
+            // cache newly accessed user
+            if (!await _cache.HasKeyValue(user.Id.ToString()))
+            {
+                await _cache.SetAsync<User>(user.Id.ToString(),user,TimeSpan.FromMinutes(10));
+            }
+
             return _mapper.Map<UserDto>(user);
         }
 
@@ -135,17 +163,34 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UserEmailNotFound);
             }
 
+            // cache newly accessed user
+            if (!await _cache.HasKeyValue(user.Id.ToString()))
+            {
+                await _cache.SetAsync<User>(user.Id.ToString(), user, TimeSpan.FromMinutes(10));
+            }
+
             return _mapper.Map<UserDto>(user);
         }
 
         public async Task<UserDto> GetUserByIdAsync(Guid id)
         {
+            var userFromCache = await _cache.GetAsync<User>(id.ToString());
+
+            if (userFromCache != null)
+                return _mapper.Map<UserDto>(userFromCache);
+
+            // Thread.Sleep(10000); --> can be used as a test whether data resides in cache or not
+
             var user = await _repository.GetByIdAsync(id);
 
             if (user == null)
             {
                 throw new NotFoundException(ErrorMessages.UserIdNotFound);
             }
+
+            // cache newly accessed user
+            var lifeTime = TimeSpan.FromMinutes(10);
+            _cache.SetAsync(id.ToString(),user,lifeTime);
 
             return _mapper.Map<UserDto>(user);
         }
@@ -158,6 +203,12 @@ namespace userMS.Persistence.Services
             if (user == null)
             {
                 throw new NotFoundException(ErrorMessages.UserPhoneNumberNotFound);
+            }
+
+            // cache newly accessed user
+            if (!await _cache.HasKeyValue(user.Id.ToString()))
+            {
+                await _cache.SetAsync<User>(user.Id.ToString(), user, TimeSpan.FromMinutes(10));
             }
 
             return _mapper.Map<UserDto>(user);
@@ -174,7 +225,15 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UserNotFound);
             }
 
+            if (await _cache.HasKeyValue(user.Id.ToString()))
+            {
+                await _cache.DeleteAsync(user.Id.ToString());
+            }
+
             var updatedUser = await _repository.UpdateAsync(user);
+
+            // cache newly updated user
+            await _cache.SetAsync<User>(updatedUser.Id.ToString(), user, TimeSpan.FromMinutes(10));
 
             return _mapper.Map<UserDto>(updatedUser);
         }
