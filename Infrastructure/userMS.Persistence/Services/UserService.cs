@@ -174,6 +174,7 @@ namespace userMS.Persistence.Services
 
         public async Task<UserDto> GetUserByIdAsync(Guid id)
         {
+            // if user is cached, retrieve it from the cache
             var userFromCache = await _cache.GetAsync<User>(id.ToString());
 
             if (userFromCache != null)
