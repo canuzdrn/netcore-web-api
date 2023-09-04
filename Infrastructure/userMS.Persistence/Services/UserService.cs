@@ -15,6 +15,11 @@ namespace userMS.Persistence.Services
         private readonly IRedisCacheService _cache;
         private readonly IMapper _mapper;
 
+        private readonly string _idPrefix = "USER:ID";
+        private readonly string _phonePrefix = "USER:PHONE";
+        private readonly string _emailPrefix = "USER:EMAIL";
+        private readonly string _usernamePrefix = "USER:USERNAME";
+
         public UserService(IRepository<User, Guid> repository, IRedisCacheService cache,IMapper mapper)
         {
             _repository = repository;
@@ -30,9 +35,13 @@ namespace userMS.Persistence.Services
 
             await _repository.AddAsync(user);
 
-            // cache the newly added user
+            #region cache newly accessed user
             var lifeTime = TimeSpan.FromMinutes(10);
-            await _cache.SetAsync<User>(user.Id.ToString(), user, lifeTime);
+            await _cache.SetAsync<User>($"{_idPrefix}:{user.Id}", user, lifeTime);
+            await _cache.SetAsync<User>($"{_phonePrefix}:{user.PhoneNo}", user, lifeTime);
+            await _cache.SetAsync<User>($"{_emailPrefix}:{user.Email}", user, lifeTime);
+            await _cache.SetAsync<User>($"{_usernamePrefix}:{user.UserName}", user, lifeTime);
+            #endregion
 
             return _mapper.Map<UserDto>(user);
         }
@@ -76,39 +85,40 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UserNotFound);
             }
 
-            var cacheKey = user.Id.ToString();
-
-            // delete user if it is cached
-            if (await _cache.HasKeyValue(cacheKey))
-            {
-                await _cache.DeleteAsync(cacheKey);
-            }
+            #region delete user if it is cached
+            await _cache.DeleteAsync($"{_idPrefix}:{user.Id}");
+            await _cache.DeleteAsync($"{_phonePrefix}:{user.PhoneNo}");
+            await _cache.DeleteAsync($"{_emailPrefix}:{user.Email}");
+            await _cache.DeleteAsync($"{_usernamePrefix}:{user.UserName}");
+            #endregion
 
             return await _repository.DeleteAsync(user);
         }
 
         public async Task<bool> DeleteUserByIdAsync(Guid id)
         {
-            var cacheKey = id.ToString();
+            var user = _repository.GetById(id);
 
-            // delete user if it is cached
-            if (await _cache.HasKeyValue(cacheKey))
-            {
-                await _cache.DeleteAsync(cacheKey);
-            }
-
-            var deleteResult = await _repository.DeleteByIdAsync(id);
-
-            if (!deleteResult)
+            if (user is null)
             {
                 throw new NotFoundException(ErrorMessages.UserIdNotFound);
             }
+
+            #region delete user if it is cached
+            await _cache.DeleteAsync($"{_idPrefix}:{user.Id}");
+            await _cache.DeleteAsync($"{_phonePrefix}:{user.PhoneNo}");
+            await _cache.DeleteAsync($"{_emailPrefix}:{user.Email}");
+            await _cache.DeleteAsync($"{_usernamePrefix}:{user.UserName}");
+            #endregion
+
+            var deleteResult = await _repository.DeleteByIdAsync(id);
 
             return deleteResult;
         }
 
         public async Task<bool> DeleteUsersAsync(IEnumerable<UserDto> userDtos)
         {
+            // TODO : Add range caching (delete)
             var users = _mapper.Map<List<User>>(userDtos);
 
             foreach (User user in users)
@@ -136,25 +146,37 @@ namespace userMS.Persistence.Services
 
         public async Task<UserDto> GetUserByUsernameAsync(string username)
         {
+            var userFromCache = await _cache.GetAsync<User>($"{_usernamePrefix}:{username}");
+
+            if (userFromCache is not null)
+                return _mapper.Map<UserDto>(userFromCache);
+
             var filterResult = await _repository.FindByAsync(u => u.UserName == username);
             var user = filterResult.FirstOrDefault();
 
-            if(user == null)
+            if(user is null)
             {
                 throw new NotFoundException(ErrorMessages.UsernameNotFound);
             }
 
-            // cache newly accessed user
-            if (!await _cache.HasKeyValue(user.Id.ToString()))
-            {
-                await _cache.SetAsync<User>(user.Id.ToString(),user,TimeSpan.FromMinutes(10));
-            }
+            #region cache newly accessed user
+            await _cache.SetAsync<User>($"{_idPrefix}:{user.Id}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_phonePrefix}:{user.PhoneNo}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_emailPrefix}:{user.Email}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_usernamePrefix}:{user.UserName}", user, TimeSpan.FromMinutes(10));
+            #endregion
+
 
             return _mapper.Map<UserDto>(user);
         }
 
         public async Task<UserDto> GetUserByEmailAddressAsync(string email)
         {
+            var userFromCache = await _cache.GetAsync<User>($"{_emailPrefix}:{email}");
+
+            if (userFromCache is not null)
+                return _mapper.Map<UserDto>(userFromCache);
+
             var filterResult = await _repository.FindByAsync(u => u.Email == email);
             var user = filterResult.FirstOrDefault();
 
@@ -163,11 +185,12 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UserEmailNotFound);
             }
 
-            // cache newly accessed user
-            if (!await _cache.HasKeyValue(user.Id.ToString()))
-            {
-                await _cache.SetAsync<User>(user.Id.ToString(), user, TimeSpan.FromMinutes(10));
-            }
+            #region cache newly accessed user
+            await _cache.SetAsync<User>($"{_idPrefix}:{user.Id}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_phonePrefix}:{user.PhoneNo}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_emailPrefix}:{user.Email}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_usernamePrefix}:{user.UserName}", user, TimeSpan.FromMinutes(10));
+            #endregion
 
             return _mapper.Map<UserDto>(user);
         }
@@ -175,9 +198,9 @@ namespace userMS.Persistence.Services
         public async Task<UserDto> GetUserByIdAsync(Guid id)
         {
             // if user is cached, retrieve it from the cache
-            var userFromCache = await _cache.GetAsync<User>(id.ToString());
+            var userFromCache = await _cache.GetAsync<User>($"{_idPrefix}:{id}");
 
-            if (userFromCache != null)
+            if (userFromCache is not null)
                 return _mapper.Map<UserDto>(userFromCache);
 
             // Thread.Sleep(10000); --> can be used as a test whether data resides in cache or not
@@ -189,15 +212,23 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UserIdNotFound);
             }
 
-            // cache newly accessed user
-            var lifeTime = TimeSpan.FromMinutes(10);
-            _cache.SetAsync(id.ToString(),user,lifeTime);
+            #region cache newly accessed user
+            await _cache.SetAsync<User>($"{_idPrefix}:{user.Id}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_phonePrefix}:{user.PhoneNo}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_emailPrefix}:{user.Email}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_usernamePrefix}:{user.UserName}", user, TimeSpan.FromMinutes(10));
+            #endregion
 
             return _mapper.Map<UserDto>(user);
         }
 
         public async Task<UserDto> GetUserByPhoneNumberAsync(string phoneNo)
         {
+            var userFromCache = await _cache.GetAsync<User>($"{_phonePrefix}:{phoneNo}");
+
+            if (userFromCache is not null)
+                return _mapper.Map<UserDto>(userFromCache);
+
             var filterResult = await _repository.FindByAsync(u => u.PhoneNo == phoneNo);
             var user = filterResult.FirstOrDefault();
 
@@ -206,11 +237,12 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UserPhoneNumberNotFound);
             }
 
-            // cache newly accessed user
-            if (!await _cache.HasKeyValue(user.Id.ToString()))
-            {
-                await _cache.SetAsync<User>(user.Id.ToString(), user, TimeSpan.FromMinutes(10));
-            }
+            #region cache newly accessed user
+            await _cache.SetAsync<User>($"{_idPrefix}:{user.Id}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_phonePrefix}:{user.PhoneNo}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_emailPrefix}:{user.Email}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_usernamePrefix}:{user.UserName}", user, TimeSpan.FromMinutes(10));
+            #endregion
 
             return _mapper.Map<UserDto>(user);
         }
@@ -226,21 +258,29 @@ namespace userMS.Persistence.Services
                 throw new NotFoundException(ErrorMessages.UserNotFound);
             }
 
-            if (await _cache.HasKeyValue(user.Id.ToString()))
-            {
-                await _cache.DeleteAsync(user.Id.ToString());
-            }
+            #region delete (former) user if it is cached
+            await _cache.DeleteAsync($"{_idPrefix}:{user.Id}");
+            await _cache.DeleteAsync($"{_phonePrefix}:{user.PhoneNo}");
+            await _cache.DeleteAsync($"{_emailPrefix}:{user.Email}");
+            await _cache.DeleteAsync($"{_usernamePrefix}:{user.UserName}");
+            #endregion
 
             var updatedUser = await _repository.UpdateAsync(user);
 
-            // cache newly updated user
-            await _cache.SetAsync<User>(updatedUser.Id.ToString(), user, TimeSpan.FromMinutes(10));
+            #region cache newly updated user
+            await _cache.SetAsync<User>($"{_idPrefix}:{user.Id}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_phonePrefix}:{user.PhoneNo}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_emailPrefix}:{user.Email}", user, TimeSpan.FromMinutes(10));
+            await _cache.SetAsync<User>($"{_usernamePrefix}:{user.UserName}", user, TimeSpan.FromMinutes(10));
+            #endregion
 
             return _mapper.Map<UserDto>(updatedUser);
         }
 
         public async Task<IEnumerable<UserDto>> UpdateUsersAsync(IEnumerable<UserDto> userDtos)
         {
+            // TODO : Add caching on bulk update
+
             var users = _mapper.Map<List<User>>(userDtos);
             
             // if every id of the provided users is not unique
