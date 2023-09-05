@@ -11,6 +11,13 @@
             public const string Login = "login";
         }
 
+        public static class FirebaseAuth
+        {
+            public const string Register = "firebase/register";
+
+            public const string Login = "firebase/login";
+        }
+
         public static class User
         {
             public const string GetAll = "users";

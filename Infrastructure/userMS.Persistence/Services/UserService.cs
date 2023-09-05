@@ -15,10 +15,12 @@ namespace userMS.Persistence.Services
         private readonly IRedisCacheService _cache;
         private readonly IMapper _mapper;
 
+        #region cache prefixes
         private readonly string _idPrefix = "USER:ID";
         private readonly string _phonePrefix = "USER:PHONE";
         private readonly string _emailPrefix = "USER:EMAIL";
         private readonly string _usernamePrefix = "USER:USERNAME";
+        #endregion
 
         public UserService(IRepository<User, Guid> repository, IRedisCacheService cache,IMapper mapper)
         {

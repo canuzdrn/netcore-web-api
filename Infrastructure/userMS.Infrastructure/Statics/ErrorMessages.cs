@@ -13,8 +13,11 @@
 
         public const string DuplicateUserInBulkUpdate = "Cannot update the same user multiple times in a single operation !";
 
-
-        public const string IncorrectUsernameProvided = "Invalid Credentials, user does not exist !";
+        public const string IncorrectIdentifierProvided = "Invalid Credentials, user does not exist !";
+        public const string IncorrectCredentialsProvided = "Invalid Credentials ";
         public const string IncorrectPasswordProvided = "Invalid Credentials, incorrect password !";
+
+        public const string FirebaseLoginError = "Error occured during login to Firebase !";
+        public const string FirebaseRegisterError = "Error occured during registering to Firebase !";
     }
 }

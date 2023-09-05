@@ -2,7 +2,6 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
@@ -108,6 +107,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
+
+builder.Services.AddHttpClient<IFirebaseAuthService, FirebaseAuthService>();
 
 // auto-mapper DI
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -124,16 +126,19 @@ builder.Services.AddTransient<IValidatorInterceptor, ValidatorInterceptor>();
 builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
 
 
-// registering services for authentication
+// configuring authentication
+var firebaseIssuer = $"https://securetoken.google.com/{builder.Configuration["FirebaseProjectId"]}";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    options.Authority = firebaseIssuer;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"])),
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
+                        ValidateIssuer = true,
+                        ValidIssuer = firebaseIssuer,
+                        ValidateAudience = true,
+                        ValidAudience = builder.Configuration["FirebaseProjectId"],
+                        ValidateLifetime = true,
                     };
                 });
 

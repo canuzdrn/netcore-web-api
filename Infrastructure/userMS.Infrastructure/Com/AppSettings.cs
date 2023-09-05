@@ -1,4 +1,6 @@
-﻿namespace userMS.Infrastructure.Com
+﻿using System.Globalization;
+
+namespace userMS.Infrastructure.Com
 {
     public class AppSettings
     {
@@ -9,5 +11,9 @@
         public EmailContent EmailContent { get; set; }
 
         public JwtSettings JwtSettings { get; set; }
+
+        public string FirebaseApiKey { get; set; }
+
+        public string IdentityToolkitBaseUrl { get; set; }
     }
 }

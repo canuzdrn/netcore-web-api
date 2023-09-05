@@ -29,7 +29,7 @@ namespace userMS.Persistence.Services
             var userExist = await _repository.AnyAsync(u => u.Email == email);
 
             if (!userExist)
-                throw new BadRequestException(ErrorMessages.IncorrectUsernameProvided);
+                throw new BadRequestException(ErrorMessages.IncorrectIdentifierProvided);
 
             var result = await _repository.FindByAsync(u => u.Email == email);
 
@@ -79,7 +79,7 @@ namespace userMS.Persistence.Services
             // if user with the provided username is not found, throw bad credentials
             if (!loggedUser.Any())
             {
-                throw new BadRequestException(ErrorMessages.IncorrectUsernameProvided);
+                throw new BadRequestException(ErrorMessages.IncorrectIdentifierProvided);
             }
 
 
