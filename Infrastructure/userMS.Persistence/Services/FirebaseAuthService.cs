@@ -26,7 +26,13 @@ namespace userMS.Persistence.Services
 
             var response = await _httpClient.PostAsJsonAsync(requestUri, request);
 
-            if (!response.IsSuccessStatusCode) throw new BadRequestException(ErrorMessages.FirebaseLoginError);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<FirebaseErrorResponse>();
+                if (errorResponse is null) throw new BadRequestException(ErrorMessages.FirebaseLoginError);
+
+                throw new BadRequestException(errorResponse.Error.Message);
+            }
 
             var responseData = await response.Content.ReadFromJsonAsync<FirebaseLoginResponseDto>();
 
@@ -41,8 +47,13 @@ namespace userMS.Persistence.Services
 
             var response = await _httpClient.PostAsJsonAsync(requestUri,request);
 
-            // TODO add custom exception
-            if (!response.IsSuccessStatusCode) throw new BadRequestException(ErrorMessages.FirebaseRegisterError);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<FirebaseErrorResponse>();
+                if (errorResponse is null) throw new BadRequestException(ErrorMessages.FirebaseRegisterError);
+
+                throw new BadRequestException(errorResponse.Error.Message);
+            }
 
             var responseData = await response.Content.ReadFromJsonAsync<FirebaseRegisterResponseDto>();
 
