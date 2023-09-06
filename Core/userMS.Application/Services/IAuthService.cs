@@ -6,8 +6,9 @@ namespace userMS.Application.Services
     {
         Task<RegisterUserDto> RegisterUserAsync(RegisterUserDto userReg);
 
-        Task<LoginResponseDto> LoginUserAsync(LoginUserDto userLog);
-
-        Task<string> GetLoggedInEmailAsync(LoginUserDto userLog);
+        Task<LoginResponseDto> IdentifierLoginUserAsync(UsernameOrEmailLoginUserDto userLog);
+        Task<LoginResponseDto> PhoneLoginUserAsync(PhoneLoginUserDto userLog);
+        Task<string> GetLoggedInEmailAsync(UsernameOrEmailLoginUserDto userLog);
+        Task<string> GetLoggedInEmailAsync(PhoneLoginUserDto userLog);
     }
 }

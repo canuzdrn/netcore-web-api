@@ -1,6 +1,6 @@
 ﻿namespace userMS.Application.DTOs
 {
-    public class FirebaseRequestDto
+    public class FirebaseEmailSignInRequestDto
     {
         public string Email { get; set; }
         public string Password { get; set; }

@@ -5,8 +5,8 @@ namespace userMS.Application.Services
 {
     public interface IFirebaseAuthService
     {
-        Task<FirebaseLoginResponseDto> FirebaseLoginAsync(FirebaseRequestDto request);
-
-        Task<FirebaseRegisterResponseDto> FirebaseRegisterAsync(FirebaseRequestDto request);
+        Task<FirebaseAuthResponseDto> FirebaseEmailLoginAsync(FirebaseEmailSignInRequestDto request);
+        Task<FirebaseAuthResponseDto> FirebasePhoneLoginAsync(FirebasePhoneSignInRequestDto request);
+        Task<FirebaseAuthResponseDto> FirebaseRegisterAsync(FirebaseEmailSignInRequestDto request);
     }
 }

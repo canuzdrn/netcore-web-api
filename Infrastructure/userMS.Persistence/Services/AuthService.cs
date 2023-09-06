@@ -22,7 +22,7 @@ namespace userMS.Persistence.Services
             _tokenService = tokenService;
         }
 
-        public async Task<LoginResponseDto> LoginUserAsync(LoginUserDto userLog)
+        public async Task<LoginResponseDto> IdentifierLoginUserAsync(UsernameOrEmailLoginUserDto userLog)
         {
             var email = await GetLoggedInEmailAsync(userLog);
 
@@ -48,6 +48,25 @@ namespace userMS.Persistence.Services
 
         }
 
+        public async Task<LoginResponseDto> PhoneLoginUserAsync(PhoneLoginUserDto userLog)
+        {
+            var user = (await _repository.FindByAsync(u => u.PhoneNo == userLog.PhoneNumber)).FirstOrDefault();
+
+            if (user is null)
+                throw new BadRequestException(ErrorMessages.IncorrectIdentifierProvided);
+
+            if (!BCrypt.Net.BCrypt.Verify(userLog.Password, user.Password))
+                throw new BadRequestException(ErrorMessages.IncorrectPasswordProvided);
+
+            // if login successfull , initialize token logic
+
+            var resp = _mapper.Map<LoginResponseDto>(user);
+
+            resp.Token = _tokenService.GenerateToken(resp);
+
+            return resp;
+        }
+
         public async Task<RegisterUserDto> RegisterUserAsync(RegisterUserDto userReg)
         {
             string providedPassword = userReg.Password;
@@ -63,7 +82,7 @@ namespace userMS.Persistence.Services
             return _mapper.Map<RegisterUserDto>(user);
         }
 
-        public async Task<string> GetLoggedInEmailAsync(LoginUserDto userLog)
+        public async Task<string> GetLoggedInEmailAsync(UsernameOrEmailLoginUserDto userLog)
         {
             var identifier = userLog.Identifier;
 
@@ -84,6 +103,22 @@ namespace userMS.Persistence.Services
 
 
             return loggedUser.FirstOrDefault().Email;
+        }
+
+        public async Task<string> GetLoggedInEmailAsync(PhoneLoginUserDto userLog)
+        {
+            var identifier = userLog.PhoneNumber;
+
+            // if identifier is not email, it means user provided his username
+            var loggedUser = (await _repository.FindByAsync(u => u.PhoneNo == identifier)).FirstOrDefault();
+
+            // if user with the provided username is not found, throw bad credentials
+            if (loggedUser is null)
+            {
+                throw new BadRequestException(ErrorMessages.IncorrectIdentifierProvided);
+            }
+
+            return loggedUser.Email;
         }
 
         public bool IsEmail(string identifier)

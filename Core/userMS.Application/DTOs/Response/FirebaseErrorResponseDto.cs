@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace userMS.Application.DTOs.Response
 {
-    public class FirebaseErrorResponse
+    public class FirebaseErrorResponseDto
     {
         [JsonPropertyName("error")]
         public FirebaseError Error { get; set; }

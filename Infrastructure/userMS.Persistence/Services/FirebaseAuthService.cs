@@ -5,7 +5,6 @@ using userMS.Application.DTOs.Response;
 using userMS.Application.Services;
 using userMS.Domain.Exceptions;
 using userMS.Infrastructure.Com;
-using userMS.Infrastructure.Statics;
 
 namespace userMS.Persistence.Services
 {
@@ -20,7 +19,7 @@ namespace userMS.Persistence.Services
             _httpClient = httpClient;
         }
 
-        public async Task<FirebaseLoginResponseDto> FirebaseLoginAsync(FirebaseRequestDto request)
+        public async Task<FirebaseAuthResponseDto> FirebaseEmailLoginAsync(FirebaseEmailSignInRequestDto request)
         {
             var requestUri = new Uri($"{_options.IdentityToolkitBaseUrl}/v1/accounts:signInWithPassword?key={_options.FirebaseApiKey}");
 
@@ -28,20 +27,19 @@ namespace userMS.Persistence.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                var errorResponse = await response.Content.ReadFromJsonAsync<FirebaseErrorResponse>();
-                if (errorResponse is null) throw new BadRequestException(ErrorMessages.FirebaseLoginError);
+                var errorResponse = await response.Content.ReadFromJsonAsync<FirebaseErrorResponseDto>();
 
                 throw new BadRequestException(errorResponse.Error.Message);
             }
 
-            var responseData = await response.Content.ReadFromJsonAsync<FirebaseLoginResponseDto>();
+            var responseData = await response.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
 
             if (responseData is null) { /* TODO */ throw new Exception(); }
 
             return responseData;
         }
 
-        public async Task<FirebaseRegisterResponseDto> FirebaseRegisterAsync(FirebaseRequestDto request)
+        public async Task<FirebaseAuthResponseDto> FirebaseRegisterAsync(FirebaseEmailSignInRequestDto request)
         {
             var requestUri = new Uri($"{_options.IdentityToolkitBaseUrl}/v1/accounts:signUp?key={_options.FirebaseApiKey}");
 
@@ -49,17 +47,56 @@ namespace userMS.Persistence.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                var errorResponse = await response.Content.ReadFromJsonAsync<FirebaseErrorResponse>();
-                if (errorResponse is null) throw new BadRequestException(ErrorMessages.FirebaseRegisterError);
+                var errorResponse = await response.Content.ReadFromJsonAsync<FirebaseErrorResponseDto>();
 
                 throw new BadRequestException(errorResponse.Error.Message);
             }
 
-            var responseData = await response.Content.ReadFromJsonAsync<FirebaseRegisterResponseDto>();
-
-            if (responseData is null) { /* TODO */ throw new Exception();  }
+            var responseData = await response.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
 
             return responseData;
+        }
+
+        public async Task<FirebaseAuthResponseDto> FirebasePhoneLoginAsync(FirebasePhoneSignInRequestDto request)
+        {
+            #region send verification code
+            var verificationRequestUri = 
+                new Uri($"{_options.IdentityToolkitBaseUrl}/v1/accounts:sendVerificationCode?key={_options.FirebaseApiKey}");
+
+            var verificationResponse = await _httpClient.PostAsJsonAsync(verificationRequestUri, request);
+
+            if (!verificationResponse.IsSuccessStatusCode)
+            {
+                var errorResponse = await verificationResponse.Content.ReadFromJsonAsync<FirebaseErrorResponseDto>();
+
+                throw new BadRequestException(errorResponse.Error.Message);
+            }
+
+            var verificationResponseData = await verificationResponse.Content.ReadFromJsonAsync<FirebasePhoneVerificationResponseDto>();
+            #endregion
+
+            var phoneSignInRequestUri =
+                new Uri($"{_options.IdentityToolkitBaseUrl}/v1/accounts:signInWithPhoneNumber?key={_options.FirebaseApiKey}");
+
+            // verification code is hardcoded for now -- see test users of project
+            var phoneSignInRequestBody = new FirebasePhoneVerificationRequestDto
+            {
+                SessionInfo = verificationResponseData.SessionInfo,
+                Code = 765432
+            };
+
+            var phoneSignInResponse = await _httpClient.PostAsJsonAsync(phoneSignInRequestUri, phoneSignInRequestBody);
+
+            if (!phoneSignInResponse.IsSuccessStatusCode)
+            {
+                var errorResponse = await phoneSignInResponse.Content.ReadFromJsonAsync<FirebaseErrorResponseDto>();
+
+                throw new BadRequestException(errorResponse.Error.Message);
+            }
+
+            var phoneSignInResponseData = await phoneSignInResponse.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
+
+            return phoneSignInResponseData;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace userMS.Application.DTOs
 {
-    public class FirebaseRegisterResponseDto
+    public class FirebaseAuthResponseDto
     {
         public string IdToken { get; set; }
         public string RefreshToken { get; set; }

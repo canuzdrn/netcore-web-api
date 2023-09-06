@@ -1,6 +1,6 @@
 ﻿namespace userMS.Application.DTOs
 {
-    public class LoginUserDto
+    public class UsernameOrEmailLoginUserDto
     {
         public string Identifier { get; set; } // username or email
 

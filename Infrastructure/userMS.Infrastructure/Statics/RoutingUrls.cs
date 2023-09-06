@@ -8,7 +8,9 @@
         {
             public const string Register = "register";
 
-            public const string Login = "login";
+            public const string LoginIdentifier = "login/identifier";
+
+            public const string LoginPhone = "login/phone";
         }
 
         public static class FirebaseAuth

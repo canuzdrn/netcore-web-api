@@ -3,7 +3,7 @@ using userMS.Application.DTOs;
 
 namespace userMS.Application.Validators
 {
-    public class LoginUserDtoValidator : AbstractValidator<LoginUserDto>
+    public class LoginUserDtoValidator : AbstractValidator<UsernameOrEmailLoginUserDto>
     {
         public LoginUserDtoValidator()
         {

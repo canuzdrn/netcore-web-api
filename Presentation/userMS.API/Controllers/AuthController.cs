@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using userMS.Application.DTOs;
-using userMS.Application.DTOs.Response;
 using userMS.Application.Services;
 using userMS.Infrastructure.Statics;
 
@@ -25,13 +24,13 @@ namespace userMS.API.Controllers
         }
 
         [HttpPost(RoutingUrls.Auth.Register)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FirebaseRegisterResponseDto))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FirebaseAuthResponseDto))]
         public async Task<IActionResult> Register([FromBody] RegisterUserDto registerDto)
         {
             var result = await _authService.RegisterUserAsync(registerDto);
 
             var firebaseResponse = await _firebaseAuthService.FirebaseRegisterAsync(
-                new FirebaseRequestDto
+                new FirebaseEmailSignInRequestDto
                 {
                     Email = registerDto.Email,
                     Password = registerDto.Password,
@@ -43,22 +42,41 @@ namespace userMS.API.Controllers
             return Ok(firebaseResponse);
         }
 
-        [HttpPost(RoutingUrls.Auth.Login)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FirebaseLoginResponseDto))]
-        public async Task<IActionResult> Login([FromBody] LoginUserDto loginDto)
+        [HttpPost(RoutingUrls.Auth.LoginIdentifier)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FirebaseAuthResponseDto))]
+        public async Task<IActionResult> LoginWithEmail([FromBody] UsernameOrEmailLoginUserDto loginDto)
         {
-            var result = await _authService.LoginUserAsync(loginDto);
+            var result = await _authService.IdentifierLoginUserAsync(loginDto);
 
             var userEmail = await _authService.GetLoggedInEmailAsync(loginDto);
 
-            var firebaseResponse = await _firebaseAuthService.FirebaseLoginAsync(
-                new FirebaseRequestDto
+            var firebaseResponse = await _firebaseAuthService.FirebaseEmailLoginAsync(
+                new FirebaseEmailSignInRequestDto
                 {
                     Email = userEmail,
                     Password = loginDto.Password,
                 });
 
             // email
+            await _emailService.SendLoginEmailAsync(userEmail);
+
+            return Ok(firebaseResponse);
+        }
+
+        [HttpPost(RoutingUrls.Auth.LoginPhone)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(FirebaseAuthResponseDto))]
+        public async Task<IActionResult> LoginWithPhone([FromBody] PhoneLoginUserDto loginDto)
+        {
+            var result = await _authService.PhoneLoginUserAsync(loginDto);
+
+            var firebaseResponse = await _firebaseAuthService.FirebasePhoneLoginAsync(
+                new FirebasePhoneSignInRequestDto
+                {
+                    PhoneNumber = loginDto.PhoneNumber,
+                });
+
+            // email
+            var userEmail = await _authService.GetLoggedInEmailAsync(loginDto);
             await _emailService.SendLoginEmailAsync(userEmail);
 
             return Ok(firebaseResponse);
