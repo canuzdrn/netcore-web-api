@@ -5,6 +5,7 @@ using userMS.Application.DTOs.Response;
 using userMS.Application.Services;
 using userMS.Domain.Exceptions;
 using userMS.Infrastructure.Com;
+using userMS.Infrastructure.Statics;
 
 namespace userMS.Persistence.Services
 {
@@ -34,7 +35,7 @@ namespace userMS.Persistence.Services
 
             var responseData = await response.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
 
-            if (responseData is null) { /* TODO */ throw new Exception(); }
+            if(responseData is null) throw new BadRequestException(ErrorMessages.FirebaseLoginError);
 
             return responseData;
         }
@@ -53,6 +54,8 @@ namespace userMS.Persistence.Services
             }
 
             var responseData = await response.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
+
+            if (responseData is null) throw new BadRequestException(ErrorMessages.FirebaseRegisterError);
 
             return responseData;
         }
@@ -73,6 +76,9 @@ namespace userMS.Persistence.Services
             }
 
             var verificationResponseData = await verificationResponse.Content.ReadFromJsonAsync<FirebasePhoneVerificationResponseDto>();
+
+            if (verificationResponseData is null) throw new BadRequestException(ErrorMessages.FirebaseCouldNotVerifyPhoneNumber);
+
             #endregion
 
             var phoneSignInRequestUri =
@@ -95,6 +101,8 @@ namespace userMS.Persistence.Services
             }
 
             var phoneSignInResponseData = await phoneSignInResponse.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
+
+            if (phoneSignInResponseData is null) throw new BadRequestException(ErrorMessages.FirebaseCouldNotSignInWithPhoneNumber);
 
             return phoneSignInResponseData;
         }

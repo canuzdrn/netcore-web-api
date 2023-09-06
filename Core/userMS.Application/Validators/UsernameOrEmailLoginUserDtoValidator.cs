@@ -3,9 +3,9 @@ using userMS.Application.DTOs;
 
 namespace userMS.Application.Validators
 {
-    public class LoginUserDtoValidator : AbstractValidator<UsernameOrEmailLoginUserDto>
+    public class UsernameOrEmailLoginUserDtoValidator : AbstractValidator<UsernameOrEmailLoginUserDto>
     {
-        public LoginUserDtoValidator()
+        public UsernameOrEmailLoginUserDtoValidator()
         {
             RuleLevelCascadeMode = CascadeMode.Stop;
 

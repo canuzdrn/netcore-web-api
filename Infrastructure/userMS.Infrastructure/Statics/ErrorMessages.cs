@@ -19,5 +19,7 @@
 
         public const string FirebaseLoginError = "Error occured during login to Firebase !";
         public const string FirebaseRegisterError = "Error occured during registering to Firebase !";
+        public const string FirebaseCouldNotVerifyPhoneNumber = "Could not verify phone number while authenticating to Firebase !";
+        public const string FirebaseCouldNotSignInWithPhoneNumber = "Error occured during signing in via phone number !";
     }
 }
