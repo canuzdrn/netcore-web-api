@@ -13,16 +13,12 @@ namespace userMS.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IFirebaseAuthService _firebaseAuthService;
-        private readonly IEmailService _emailService;
 
         public AuthController(IAuthService authService,
             IFirebaseAuthService firebaseAuthService,
             IEmailService emailService)
         {
             _authService = authService;
-            _firebaseAuthService = firebaseAuthService;
-            _emailService = emailService;
         }
 
         [HttpPost(RoutingUrls.Auth.Register)]
