@@ -11,6 +11,8 @@
             public const string LoginIdentifier = "login/identifier";
 
             public const string LoginPhone = "login/phone";
+
+            public const string VerifyOtp = "verify";
         }
 
         public static class FirebaseAuth

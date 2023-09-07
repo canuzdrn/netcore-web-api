@@ -3,6 +3,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
+using userMS.Application.DTOs.Request;
 using userMS.Application.Services;
 using userMS.Infrastructure.Com;
 
@@ -50,5 +51,21 @@ namespace userMS.Infrastructure.Services
             smtp.Disconnect(true);
             smtp.Dispose();
         }
+        public async Task SendCustomEmailAsync(EmailSendRequestDto emailSendRequestDto)
+        {
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(_options.EmailSettings.Username));
+            email.To.Add(MailboxAddress.Parse(emailSendRequestDto.To));
+            email.Subject = emailSendRequestDto.Subject ?? "" ;
+            email.Body = new TextPart(TextFormat.Html) { Text = (emailSendRequestDto.Body + "<br/>" + $" {DateTime.Now} ") };
+
+            var smtp = new SmtpClient();
+            smtp.Connect(_options.EmailSettings.Host, PortTLS, SecureSocketOptions.StartTls);
+            smtp.Authenticate(_options.EmailSettings.Username, _options.EmailSettings.Password);
+            await smtp.SendAsync(email);
+            smtp.Disconnect(true);
+            smtp.Dispose();
+        }
+
     }
 }
