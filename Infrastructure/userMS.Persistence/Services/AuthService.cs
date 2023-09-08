@@ -18,6 +18,7 @@ namespace userMS.Persistence.Services
         private readonly IMapper _mapper;
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
+        private readonly ISmsService _smsService;
         private readonly IFirebaseAuthService _firebaseAuthService;
         private readonly IRedisCacheService _cacheService;
 
@@ -26,6 +27,7 @@ namespace userMS.Persistence.Services
             IMapper mapper, 
             ITokenService tokenService,
             IEmailService emailService,
+            ISmsService smsService,
             IFirebaseAuthService firebaseAuthService,
             IRedisCacheService cacheService)
         {
@@ -33,6 +35,7 @@ namespace userMS.Persistence.Services
             _mapper = mapper;
             _tokenService = tokenService;
             _emailService = emailService;
+            _smsService = smsService;
             _firebaseAuthService = firebaseAuthService;
             _cacheService = cacheService;
         }
@@ -127,29 +130,56 @@ namespace userMS.Persistence.Services
 
             // otp generation
             Random random = new Random();
-            int otp = random.Next(100000, 999999);
+            int otpEmail = random.Next(100000, 999999);
             
             // sending otp to the user
             await _emailService.SendCustomEmailAsync(new EmailSendRequestDto
             {
                 Subject = "Verify your account",
-                Body = $"Your verification code : {otp}",
+                Body = $"Your verification code : {otpEmail}",
                 To = userReg.Email
             });
 
             // caching otp for further access
-            var otpObject = new
+            var otpObjectEmail = new
             {
                 TransactionId = Guid.NewGuid(),
                 UserId = user.Id,
                 CreatedAt = DateTime.Now,
-                Otp = otp,
+                Otp = otpEmail,
                 VerificationMethod = VerificationMethods.Email
             };
 
-            var saveResult = await _cacheService.SetAsync($"OTP:{otpObject.TransactionId}",otpObject, TimeSpan.FromMinutes(5));
+            var saveResult = await _cacheService.SetAsync($"OTP:{otpObjectEmail.TransactionId}", otpObjectEmail, TimeSpan.FromMinutes(5));
 
-            if (saveResult is not true) throw new BadRequestException(ErrorMessages.OtpCannotBeSaved);
+            if (saveResult is not true) throw new BadRequestException(ErrorMessages.EmailOtpCannotBeSaved);
+            #endregion
+
+            #region Phone number verification (otp) logic
+
+            // otp generation
+            int otpPhone = random.Next(100000, 999999);
+
+            // sending otp to the user
+            await _smsService.SendSmsAsync(new SmsSendRequestDto
+            {
+                Body = $"Your verification code : {otpPhone}",
+                To = userReg.PhoneNo
+            });
+
+            // caching otp for further access
+            var otpObjectPhone = new
+            {
+                TransactionId = Guid.NewGuid(),
+                UserId = user.Id,
+                CreatedAt = DateTime.Now,
+                Otp = otpPhone,
+                VerificationMethod = VerificationMethods.Phone
+            };
+            saveResult = await _cacheService.SetAsync($"OTP:{otpObjectPhone.TransactionId}", otpObjectPhone, TimeSpan.FromMinutes(5));
+
+            if (saveResult is not true) throw new BadRequestException(ErrorMessages.PhoneOtpCannotBeSaved);
+
             #endregion
 
             return firebaseResponse;

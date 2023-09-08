@@ -22,11 +22,14 @@
         public const string FirebaseCouldNotVerifyPhoneNumber = "Could not verify phone number while authenticating to Firebase !";
         public const string FirebaseCouldNotSignInWithPhoneNumber = "Error occured during signing in via phone number !";
 
-        public const string OtpCannotBeSaved = "Error occured during saving the OTP !";
+        public const string EmailOtpCannotBeSaved = "Error occured during saving the OTP that's been sent to email !";
+        public const string PhoneOtpCannotBeSaved = "Error occured during saving the OTP that's been sent to phone number !";
         public const string OtpIsExpired = "Requested OTP is expired !";
         public const string OtpIsIncorrect = "Verification is failed, incorrect OTP is provided !";
 
         public const string EmailIsNotVerified = "User's email is not verified, in order to login you need to verify your email !";
-        public const string PhoneNumberIsNotVerified = "User's phone numver is not verified, in order to login you need to verify your phone number !";
+        public const string PhoneNumberIsNotVerified = "User's phone number is not verified, in order to login you need to verify your phone number !";
+
+        public const string SmsCouldntBeSent = "Error occured during SMS sending process !";
     }
 }

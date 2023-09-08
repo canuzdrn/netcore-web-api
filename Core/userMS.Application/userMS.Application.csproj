@@ -13,6 +13,7 @@
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
     <PackageReference Include="Refit" Version="7.0.0" />
     <PackageReference Include="Refit.HttpClientFactory" Version="7.0.0" />
+    <PackageReference Include="Twilio" Version="6.13.0" />
   </ItemGroup>
 
   <ItemGroup>

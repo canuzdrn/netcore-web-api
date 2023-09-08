@@ -12,6 +12,8 @@ namespace userMS.Infrastructure.Com
 
         public JwtSettings JwtSettings { get; set; }
 
+        public TwilioSettings TwilioSettings { get; set; }
+
         public string FirebaseApiKey { get; set; }
 
         public string IdentityToolkitBaseUrl { get; set; }
