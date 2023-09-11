@@ -19,6 +19,7 @@ namespace userMS.Persistence.Services
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
         private readonly ISmsService _smsService;
+        private readonly IOtpService _otpService;
         private readonly IFirebaseAuthService _firebaseAuthService;
         private readonly IRedisCacheService _cacheService;
 
@@ -28,6 +29,7 @@ namespace userMS.Persistence.Services
             ITokenService tokenService,
             IEmailService emailService,
             ISmsService smsService,
+            IOtpService otpService,
             IFirebaseAuthService firebaseAuthService,
             IRedisCacheService cacheService)
         {
@@ -36,6 +38,7 @@ namespace userMS.Persistence.Services
             _tokenService = tokenService;
             _emailService = emailService;
             _smsService = smsService;
+            _otpService = otpService;
             _firebaseAuthService = firebaseAuthService;
             _cacheService = cacheService;
         }
@@ -107,6 +110,16 @@ namespace userMS.Persistence.Services
 
         public async Task<FirebaseAuthResponseDto> RegisterUserAsync(RegisterUserDto userReg)
         {
+            #region Delete cache entries of OTPs if there are any assigned for provided user
+
+            var emailOtpDeleteResult = await _cacheService.BulkDeleteAsync(
+                await _cacheService.GetKeysByPrefix($"OTP:{userReg.Email}"));
+            
+            var phoneOtpDeleteResult = await _cacheService.BulkDeleteAsync(
+                await _cacheService.GetKeysByPrefix($"OTP:{userReg.PhoneNo}"));
+
+            #endregion
+
             string providedPassword = userReg.Password;
 
             var user = _mapper.Map<User>(userReg);
@@ -129,21 +142,27 @@ namespace userMS.Persistence.Services
             await _emailService.SendRegisterEmailAsync(userReg.Email);
 
             // otp generation
-            Random random = new Random();
-            int otpEmail = random.Next(100000, 999999);
+            string otpEmail = await _otpService.GenerateTotp();
             
-            // sending otp to the user
-            await _emailService.SendCustomEmailAsync(new EmailSendRequestDto
+            try
             {
-                Subject = "Verify your account",
-                Body = $"Your verification code : {otpEmail}",
-                To = userReg.Email
-            });
+                // sending otp to the user
+                await _emailService.SendCustomEmailAsync(new EmailSendRequestDto
+                {
+                    Subject = "Verify your account",
+                    Body = $"Your verification code : {otpEmail}",
+                    To = userReg.Email
+                });
+            }
+            catch
+            {
+                throw new BadRequestException(ErrorMessages.SmsCouldntBeSent);
+            }
 
             // caching otp for further access
             var otpObjectEmail = new
             {
-                TransactionId = Guid.NewGuid(),
+                TransactionId = userReg.Email + otpEmail,
                 UserId = user.Id,
                 CreatedAt = DateTime.Now,
                 Otp = otpEmail,
@@ -158,7 +177,7 @@ namespace userMS.Persistence.Services
             #region Phone number verification (otp) logic
 
             // otp generation
-            int otpPhone = random.Next(100000, 999999);
+            string otpPhone = await _otpService.GenerateTotp();
 
             // sending otp to the user
             await _smsService.SendSmsAsync(new SmsSendRequestDto
@@ -170,7 +189,7 @@ namespace userMS.Persistence.Services
             // caching otp for further access
             var otpObjectPhone = new
             {
-                TransactionId = Guid.NewGuid(),
+                TransactionId = userReg.PhoneNo + otpPhone,
                 UserId = user.Id,
                 CreatedAt = DateTime.Now,
                 Otp = otpPhone,

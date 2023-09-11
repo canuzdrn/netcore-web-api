@@ -19,6 +19,13 @@ namespace userMS.Persistence.Services
             _db = redis.GetDatabase();
         }
 
+        public async Task<bool> BulkDeleteAsync(IEnumerable<string> keys)
+        {
+            foreach (var key in keys) await DeleteAsync(key);
+
+            return true;
+        }
+
         public async Task<bool> DeleteAsync(string key)
         {
             await _db.KeyDeleteAsync(key);
@@ -37,6 +44,20 @@ namespace userMS.Persistence.Services
             }
 
             return default;
+        }
+
+        public async Task<IEnumerable<string>> GetKeysByPrefix(string pattern)
+        {
+            var server = _db.Multiplexer.GetServer(_db.Multiplexer.GetEndPoints()[0]);
+            var keys = server.Keys(pattern: pattern + "*");
+
+            var matchingKeys = new List<string>();
+            foreach (var key in keys)
+            {
+                matchingKeys.Add(key.ToString());
+            }
+
+            return matchingKeys;
         }
 
         public async Task<bool> HasKeyValue(string key)

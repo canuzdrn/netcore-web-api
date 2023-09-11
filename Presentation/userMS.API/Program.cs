@@ -107,6 +107,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
 
 builder.Services.AddHttpClient<IFirebaseAuthService, FirebaseAuthService>();
