@@ -12,7 +12,11 @@
 
             public const string LoginPhone = "login/phone";
 
-            public const string VerifyOtp = "verify";
+            public const string VerifyOtp = "otp/verify";
+
+            public const string SendEmailOtp = "otp/send/email";
+
+            public const string SendPhoneOtp = "otp/send/phone";
         }
 
         public static class FirebaseAuth

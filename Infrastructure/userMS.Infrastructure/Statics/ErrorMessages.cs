@@ -31,5 +31,6 @@
         public const string PhoneNumberIsNotVerified = "User's phone number is not verified, in order to login you need to verify your phone number !";
 
         public const string SmsCouldntBeSent = "Error occured during SMS sending process !";
+        public const string EmailCouldntBeSent = "Error occured during Email sending process !";
     }
 }

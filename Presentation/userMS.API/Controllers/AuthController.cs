@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 using System.Net;
 using userMS.Application.DTOs;
 using userMS.Application.DTOs.Request;
@@ -14,9 +13,7 @@ namespace userMS.API.Controllers
     {
         private readonly IAuthService _authService;
 
-        public AuthController(IAuthService authService,
-            IFirebaseAuthService firebaseAuthService,
-            IEmailService emailService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
@@ -46,6 +43,24 @@ namespace userMS.API.Controllers
             var response = await _authService.PhoneLoginUserAsync(loginDto);
 
             return Ok(response);
+        }
+
+        [HttpPost(RoutingUrls.Auth.SendEmailOtp)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> SendEmailOtp([FromBody] SendEmailOtpRequestDto sendEmailOtpRequestDto)
+        {
+            await _authService.SendEmailOtpAsync(sendEmailOtpRequestDto);
+
+            return Ok();
+        }
+
+        [HttpPost(RoutingUrls.Auth.SendPhoneOtp)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> SendPhoneOtp([FromBody] SendPhoneOtpRequestDto sendPhoneOtpRequestDto)
+        {
+            await _authService.SendPhoneOtpAsync(sendPhoneOtpRequestDto);
+
+            return Ok();
         }
 
         [HttpPost(RoutingUrls.Auth.VerifyOtp)]

@@ -11,5 +11,7 @@ namespace userMS.Application.Services
         Task<FirebaseAuthResponseDto> PhoneLoginUserAsync(PhoneLoginUserDto userLog);
         Task<string> GetLoggedInEmailAsync(UsernameOrEmailLoginUserDto userLog);
         Task<string> GetLoggedInEmailAsync(PhoneLoginUserDto userLog);
+        Task SendEmailOtpAsync(SendEmailOtpRequestDto sendEmailOtpRequestDto);
+        Task SendPhoneOtpAsync(SendPhoneOtpRequestDto sendPhoneOtpRequestDto);
     }
 }

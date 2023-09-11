@@ -10,6 +10,7 @@ using userMS.Domain.Entities;
 using userMS.Domain.Exceptions;
 using userMS.Infrastructure.Statics;
 
+
 namespace userMS.Persistence.Services
 {
     public class AuthService : IAuthService
@@ -141,31 +142,68 @@ namespace userMS.Persistence.Services
             // welcome email
             await _emailService.SendRegisterEmailAsync(userReg.Email);
 
+            var emailOtpSendDto = new SendEmailOtpRequestDto
+            {
+                Email = userReg.Email
+            };
+
+            await SendEmailOtpAsync(emailOtpSendDto);
+            #endregion
+
+            #region Phone number verification (otp) logic
+
+            var phoneOtpSendDto = new SendPhoneOtpRequestDto
+            {
+                PhoneNo = userReg.PhoneNo
+            };
+
+            await SendPhoneOtpAsync(phoneOtpSendDto);
+
+            #endregion
+
+            return firebaseResponse;
+        }
+
+        public async Task SendEmailOtpAsync(SendEmailOtpRequestDto sendEmailOtpRequestDto)
+        {
+            #region Delete cache entries of OTPs if there are any assigned for provided user
+
+            var emailOtpDeleteResult = await _cacheService.BulkDeleteAsync(
+                await _cacheService.GetKeysByPrefix($"OTP:{sendEmailOtpRequestDto.Email}"));
+
+            #endregion
+
+            var user = (await _userRepository.FindByAsync(r => r.Email == sendEmailOtpRequestDto.Email))
+                .FirstOrDefault();
+
+            if (user is null) throw new NotFoundException(ErrorMessages.UserEmailNotFound);
+
+            #region otp sending logic
             // otp generation
-            string otpEmail = await _otpService.GenerateTotp();
-            
+            string otp = await _otpService.GenerateTotp();
+
             try
             {
                 // sending otp to the user
                 await _emailService.SendCustomEmailAsync(new EmailSendRequestDto
                 {
                     Subject = "Verify your account",
-                    Body = $"Your verification code : {otpEmail}",
-                    To = userReg.Email
+                    Body = $"Your verification code : {otp}",
+                    To = sendEmailOtpRequestDto.Email
                 });
             }
             catch
             {
-                throw new BadRequestException(ErrorMessages.SmsCouldntBeSent);
+                throw new BadRequestException(ErrorMessages.EmailCouldntBeSent);
             }
 
             // caching otp for further access
             var otpObjectEmail = new
             {
-                TransactionId = userReg.Email + otpEmail,
+                TransactionId = sendEmailOtpRequestDto.Email + otp,
                 UserId = user.Id,
                 CreatedAt = DateTime.Now,
-                Otp = otpEmail,
+                Otp = otp,
                 VerificationMethod = VerificationMethods.Email
             };
 
@@ -173,6 +211,20 @@ namespace userMS.Persistence.Services
 
             if (saveResult is not true) throw new BadRequestException(ErrorMessages.EmailOtpCannotBeSaved);
             #endregion
+        }
+
+        public async Task SendPhoneOtpAsync(SendPhoneOtpRequestDto sendPhoneOtpRequestDto)
+        {
+            #region Delete cache entries of OTPs if there are any assigned for provided user
+
+            var emailOtpDeleteResult = await _cacheService.BulkDeleteAsync(
+                await _cacheService.GetKeysByPrefix($"OTP:{sendPhoneOtpRequestDto.PhoneNo}"));
+
+            #endregion
+
+            var user = (await _userRepository.FindByAsync(r=> r.PhoneNo == sendPhoneOtpRequestDto.PhoneNo)).FirstOrDefault();
+
+            if (user is null) throw new NotFoundException(ErrorMessages.UserPhoneNumberNotFound);
 
             #region Phone number verification (otp) logic
 
@@ -180,28 +232,34 @@ namespace userMS.Persistence.Services
             string otpPhone = await _otpService.GenerateTotp();
 
             // sending otp to the user
-            await _smsService.SendSmsAsync(new SmsSendRequestDto
+            try
             {
-                Body = $"Your verification code : {otpPhone}",
-                To = userReg.PhoneNo
-            });
+                await _smsService.SendSmsAsync(new SmsSendRequestDto
+                {
+                    Body = $"Your verification code : {otpPhone}",
+                    To = sendPhoneOtpRequestDto.PhoneNo
+                });
+            }
+            catch
+            {
+                throw new BadRequestException(ErrorMessages.SmsCouldntBeSent);
+            }
+
 
             // caching otp for further access
             var otpObjectPhone = new
             {
-                TransactionId = userReg.PhoneNo + otpPhone,
+                TransactionId = sendPhoneOtpRequestDto.PhoneNo + otpPhone,
                 UserId = user.Id,
                 CreatedAt = DateTime.Now,
                 Otp = otpPhone,
                 VerificationMethod = VerificationMethods.Phone
             };
-            saveResult = await _cacheService.SetAsync($"OTP:{otpObjectPhone.TransactionId}", otpObjectPhone, TimeSpan.FromMinutes(5));
+            var saveResult = await _cacheService.SetAsync($"OTP:{otpObjectPhone.TransactionId}", otpObjectPhone, TimeSpan.FromMinutes(5));
 
             if (saveResult is not true) throw new BadRequestException(ErrorMessages.PhoneOtpCannotBeSaved);
 
             #endregion
-
-            return firebaseResponse;
         }
 
         public async Task<bool> VerifyOtpAsync(OtpVerificationRequestDto otpVerificationRequestDto)
