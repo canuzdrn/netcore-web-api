@@ -67,7 +67,11 @@ namespace userMS.Persistence.Services
                 });
 
             // email
-            await _emailService.SendLoginEmailAsync(email);
+            await _emailService.SendLoginEmailAsync(new UserLoginMailRequestDto
+            {
+                Username = user.UserName,
+                Email = email
+            });
 
             // if login successfull , initialize token logic
             var resp = _mapper.Map<LoginResponseDto>(user);
@@ -99,7 +103,11 @@ namespace userMS.Persistence.Services
 
             // email
             var email = await GetLoggedInEmailAsync(userLog);
-            await _emailService.SendLoginEmailAsync(email);
+            await _emailService.SendLoginEmailAsync(new UserLoginMailRequestDto
+            {
+                Username = user.UserName,
+                Email = email
+            });
 
             // if login successfull , initialize token logic
             var resp = _mapper.Map<LoginResponseDto>(user);
@@ -139,25 +147,40 @@ namespace userMS.Persistence.Services
             await _userRepository.AddAsync(user);
 
             #region Email and otp sending logic
-            // welcome email
-            await _emailService.SendRegisterEmailAsync(userReg.Email);
+            // otp generation
+            string otp = await _otpService.GenerateTotp();
 
-            var emailOtpSendDto = new SendEmailOtpRequestDto
+            // send register email and otp to the user
+            await _emailService.SendRegisterEmailAsync(new UserRegisterMailRequestDto
             {
-                Email = userReg.Email
+                Username = userReg.UserName,
+                Email = userReg.Email,
+                Otp = otp
+            });
+
+            // caching otp for further access
+            var otpObjectEmail = new 
+            {
+                TransactionId = userReg.Email + otp,
+                UserId = user.Id,
+                CreatedAt = DateTime.Now,
+                Otp = otp,
+                VerificationMethod = VerificationMethods.Email
             };
 
-            await SendEmailOtpAsync(emailOtpSendDto);
+            var saveResult = await _cacheService.SetAsync($"OTP:{otpObjectEmail.TransactionId}", otpObjectEmail, TimeSpan.FromMinutes(5));
+
+            if (saveResult is not true) throw new BadRequestException(ErrorMessages.EmailOtpCannotBeSaved);
             #endregion
 
             #region Phone number verification (otp) logic
 
-            var phoneOtpSendDto = new SendPhoneOtpRequestDto
-            {
-                PhoneNo = userReg.PhoneNo
-            };
+            //var phoneOtpSendDto = new SendPhoneOtpRequestDto
+            //{
+            //    PhoneNo = userReg.PhoneNo
+            //};
 
-            await SendPhoneOtpAsync(phoneOtpSendDto);
+            //await SendPhoneOtpAsync(phoneOtpSendDto);
 
             #endregion
 
@@ -166,17 +189,19 @@ namespace userMS.Persistence.Services
 
         public async Task SendEmailOtpAsync(SendEmailOtpRequestDto sendEmailOtpRequestDto)
         {
+            var user = (await _userRepository.FindByAsync(r => r.Email == sendEmailOtpRequestDto.Email))
+                .FirstOrDefault();
+
+            if (user is null) throw new NotFoundException(ErrorMessages.UserEmailNotFound);
+
+            if (user.IsEmailVerified) throw new BadRequestException(ErrorMessages.EmailIsAlreadyVerified);
+
             #region Delete cache entries of OTPs if there are any assigned for provided user
 
             var emailOtpDeleteResult = await _cacheService.BulkDeleteAsync(
                 await _cacheService.GetKeysByPrefix($"OTP:{sendEmailOtpRequestDto.Email}"));
 
             #endregion
-
-            var user = (await _userRepository.FindByAsync(r => r.Email == sendEmailOtpRequestDto.Email))
-                .FirstOrDefault();
-
-            if (user is null) throw new NotFoundException(ErrorMessages.UserEmailNotFound);
 
             #region otp sending logic
             // otp generation
@@ -215,16 +240,18 @@ namespace userMS.Persistence.Services
 
         public async Task SendPhoneOtpAsync(SendPhoneOtpRequestDto sendPhoneOtpRequestDto)
         {
+            var user = (await _userRepository.FindByAsync(r => r.PhoneNo == sendPhoneOtpRequestDto.PhoneNo)).FirstOrDefault();
+
+            if (user is null) throw new NotFoundException(ErrorMessages.UserPhoneNumberNotFound);
+
+            if (user.IsPhoneNumberVerified) throw new BadRequestException(ErrorMessages.PhoneIsAlreadyVerified);
+
             #region Delete cache entries of OTPs if there are any assigned for provided user
 
             var emailOtpDeleteResult = await _cacheService.BulkDeleteAsync(
                 await _cacheService.GetKeysByPrefix($"OTP:{sendPhoneOtpRequestDto.PhoneNo}"));
 
             #endregion
-
-            var user = (await _userRepository.FindByAsync(r=> r.PhoneNo == sendPhoneOtpRequestDto.PhoneNo)).FirstOrDefault();
-
-            if (user is null) throw new NotFoundException(ErrorMessages.UserPhoneNumberNotFound);
 
             #region Phone number verification (otp) logic
 

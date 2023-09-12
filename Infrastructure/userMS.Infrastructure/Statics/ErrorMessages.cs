@@ -32,5 +32,8 @@
 
         public const string SmsCouldntBeSent = "Error occured during SMS sending process !";
         public const string EmailCouldntBeSent = "Error occured during Email sending process !";
+
+        public const string EmailIsAlreadyVerified = "User's email address is already verified !";
+        public const string PhoneIsAlreadyVerified = "User's phone number is already verified !";
     }
 }

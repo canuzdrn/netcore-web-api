@@ -4,9 +4,9 @@ namespace userMS.Application.Services
 {
     public interface IEmailService
     {
-        Task SendRegisterEmailAsync(string to);
+        Task SendRegisterEmailAsync(UserRegisterMailRequestDto userRegisterMailRequestDto);
 
-        Task SendLoginEmailAsync(string to);
+        Task SendLoginEmailAsync(UserLoginMailRequestDto userLoginMailRequestDto);
 
         Task SendCustomEmailAsync(EmailSendRequestDto emailSendRequestDto);
     }

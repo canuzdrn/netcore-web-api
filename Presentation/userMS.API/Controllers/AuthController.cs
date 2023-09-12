@@ -63,10 +63,31 @@ namespace userMS.API.Controllers
             return Ok();
         }
 
-        [HttpPost(RoutingUrls.Auth.VerifyOtp)]
+        [HttpGet(RoutingUrls.Auth.VerifyEmailOtp)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
-        public async Task<IActionResult> VerifyOtp([FromBody] OtpVerificationRequestDto otpVerificationRequestDto)
+        public async Task<IActionResult> VerifyEmailOtp([FromQuery] string transactionId)
         {
+            var otpVerificationRequestDto = new OtpVerificationRequestDto
+            {
+                TransactionId = transactionId,
+                Otp = transactionId.Substring(transactionId.Length - 6),
+                VerificationMethod = Application.Enums.VerificationMethods.Email
+            };
+            var verificationResult = await _authService.VerifyOtpAsync(otpVerificationRequestDto);
+
+            return Ok(verificationResult);
+        }
+
+        [HttpGet(RoutingUrls.Auth.VerifyPhoneOtp)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
+        public async Task<IActionResult> VerifyPhoneOtp([FromQuery] string transactionId)
+        {
+            var otpVerificationRequestDto = new OtpVerificationRequestDto
+            {
+                TransactionId = transactionId,
+                Otp = transactionId.Substring(transactionId.Length - 6),
+                VerificationMethod = Application.Enums.VerificationMethods.Phone
+            };
             var verificationResult = await _authService.VerifyOtpAsync(otpVerificationRequestDto);
 
             return Ok(verificationResult);

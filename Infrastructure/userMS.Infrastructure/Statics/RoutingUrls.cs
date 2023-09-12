@@ -12,7 +12,9 @@
 
             public const string LoginPhone = "login/phone";
 
-            public const string VerifyOtp = "otp/verify";
+            public const string VerifyEmailOtp = "otp/verify/email";
+
+            public const string VerifyPhoneOtp = "otp/verify/phone";
 
             public const string SendEmailOtp = "otp/send/email";
 
