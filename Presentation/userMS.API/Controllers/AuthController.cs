@@ -1,8 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Net;
+using System.Text.Json;
 using userMS.Application.DTOs;
 using userMS.Application.DTOs.Request;
+using userMS.Application.DTOs.Response;
 using userMS.Application.Services;
+using userMS.Infrastructure.Com;
 using userMS.Infrastructure.Statics;
 
 namespace userMS.API.Controllers
@@ -12,10 +17,16 @@ namespace userMS.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IFirebaseAuthService _firebaseAuthService;
+        private readonly AppSettings _options;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService,
+            IFirebaseAuthService firebaseAuthService,
+            IOptions<AppSettings> options)
         {
             _authService = authService;
+            _firebaseAuthService = firebaseAuthService;
+            _options = options.Value;
         }
 
         [HttpPost(RoutingUrls.Auth.Register)]
@@ -89,6 +100,43 @@ namespace userMS.API.Controllers
                 VerificationMethod = Application.Enums.VerificationMethods.Phone
             };
             var verificationResult = await _authService.VerifyOtpAsync(otpVerificationRequestDto);
+
+            return Ok(verificationResult);
+        }
+
+        // endpoints that serves user to google login flow
+        [HttpGet("account/google-login")]
+        public async Task<IActionResult> GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GoogleLoginCallback)),
+            };
+
+            return Challenge(properties, "Google");
+        }
+
+        // endpoints that redirects user to google login page
+        [HttpGet("account/google-login-callback")]
+        public async Task<IActionResult> GoogleLoginCallback()
+        {
+            var authResult = await HttpContext.AuthenticateAsync("Google");
+
+            if (!authResult.Succeeded)
+            {
+                // TODO : Handle authentication failure
+                return BadRequest();
+            }
+
+            var accessToken = authResult.Properties.GetTokenValue("access_token");
+
+            return Ok(accessToken);
+        }
+
+        [HttpPost("account/google-login-to-firebase")]
+        public async Task<IActionResult> GoogleLoginToFirebase([FromBody] GoogleVerificationRequestDto googleVerificationRequestDto)
+        {
+            var verificationResult = await _firebaseAuthService.FirebaseGoogleLoginVerification(googleVerificationRequestDto);
 
             return Ok(verificationResult);
         }

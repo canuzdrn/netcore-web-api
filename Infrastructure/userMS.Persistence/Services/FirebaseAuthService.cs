@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 using userMS.Application.DTOs;
+using userMS.Application.DTOs.Request;
 using userMS.Application.DTOs.Response;
 using userMS.Application.Services;
 using userMS.Domain.Exceptions;
@@ -22,7 +23,7 @@ namespace userMS.Persistence.Services
 
         public async Task<FirebaseAuthResponseDto> FirebaseEmailLoginAsync(FirebaseEmailSignInRequestDto request)
         {
-            var requestUri = new Uri($"{_options.IdentityToolkitBaseUrl}/v1/accounts:signInWithPassword?key={_options.FirebaseApiKey}");
+            var requestUri = new Uri($"{_options.IdentityToolkitBaseUrl}:signInWithPassword?key={_options.FirebaseApiKey}");
 
             var response = await _httpClient.PostAsJsonAsync(requestUri, request);
 
@@ -42,7 +43,7 @@ namespace userMS.Persistence.Services
 
         public async Task<FirebaseAuthResponseDto> FirebaseRegisterAsync(FirebaseEmailSignInRequestDto request)
         {
-            var requestUri = new Uri($"{_options.IdentityToolkitBaseUrl}/v1/accounts:signUp?key={_options.FirebaseApiKey}");
+            var requestUri = new Uri($"{_options.IdentityToolkitBaseUrl}:signUp?key={_options.FirebaseApiKey}");
 
             var response = await _httpClient.PostAsJsonAsync(requestUri,request);
 
@@ -64,7 +65,7 @@ namespace userMS.Persistence.Services
         {
             #region send verification code
             var verificationRequestUri = 
-                new Uri($"{_options.IdentityToolkitBaseUrl}/v1/accounts:sendVerificationCode?key={_options.FirebaseApiKey}");
+                new Uri($"{_options.IdentityToolkitBaseUrl}:sendVerificationCode?key={_options.FirebaseApiKey}");
 
             var verificationResponse = await _httpClient.PostAsJsonAsync(verificationRequestUri, request);
 
@@ -82,7 +83,7 @@ namespace userMS.Persistence.Services
             #endregion
 
             var phoneSignInRequestUri =
-                new Uri($"{_options.IdentityToolkitBaseUrl}/v1/accounts:signInWithPhoneNumber?key={_options.FirebaseApiKey}");
+                new Uri($"{_options.IdentityToolkitBaseUrl}:signInWithPhoneNumber?key={_options.FirebaseApiKey}");
 
             // verification code is hardcoded for now -- see test users of project
             var phoneSignInRequestBody = new FirebasePhoneVerificationRequestDto
@@ -105,6 +106,24 @@ namespace userMS.Persistence.Services
             if (phoneSignInResponseData is null) throw new BadRequestException(ErrorMessages.FirebaseCouldNotSignInWithPhoneNumber);
 
             return phoneSignInResponseData;
+        }
+
+        public async Task<GoogleVerificationResponseDto> FirebaseGoogleLoginVerification(GoogleVerificationRequestDto googleVerificationRequestDto)
+        {
+            var requestUrl = new Uri($"{_options.IdentityToolkitBaseUrl}:signInWithIdp?key={_options.FirebaseApiKey}");
+
+            var response = await _httpClient.PostAsJsonAsync(requestUrl, googleVerificationRequestDto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                //TODO : handle unsuccessful case
+            }
+
+            var debugData = await response.Content.ReadAsStringAsync();
+
+            var responseData = await response.Content.ReadFromJsonAsync<GoogleVerificationResponseDto>();
+
+            return responseData;
         }
     }
 }
