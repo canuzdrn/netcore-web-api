@@ -1,7 +1,6 @@
-﻿using Amazon.Runtime.Internal;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.Net.Http.Json;
-using System.Text.Json;
 using userMS.Application.DTOs;
 using userMS.Application.DTOs.Request;
 using userMS.Application.DTOs.Response;
@@ -124,9 +123,31 @@ namespace userMS.Persistence.Services
                 throw new BadRequestException(error.Error.Message);
             }
 
-            // var debugData = await response.Content.ReadAsStringAsync();
-
             var responseData = await response.Content.ReadFromJsonAsync<OauthVerificationResponseDto>();
+
+            #region verify email of the user if email is not verified
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var responseObj = JsonConvert.DeserializeObject<dynamic>(json);
+
+            bool emailVerified = responseObj.emailVerified;
+
+            if(!emailVerified)
+            {
+                var sendEmailVerificationRequestUri = new Uri($"{_options.IdentityToolkitBaseUrl}:sendOobCode?key={_options.FirebaseApiKey}");
+
+                var sendEmailVerificationRequestBody = new
+                {
+                    RequestType = "VERIFY_EMAIL",
+                    IdToken = responseData.IdToken
+                };
+
+                await _httpClient.PostAsJsonAsync(sendEmailVerificationRequestUri, 
+                    sendEmailVerificationRequestBody);
+            }
+
+            #endregion
 
             return responseData;
         }

@@ -4,7 +4,7 @@
     {
         public virtual TPrimaryKey Id { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public virtual TPrimaryKey CreatedBy { get; set; }
     }

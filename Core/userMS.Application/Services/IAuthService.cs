@@ -14,6 +14,7 @@ namespace userMS.Application.Services
         Task<string> GetLoggedInEmailAsync(PhoneLoginUserDto userLog);
         Task SendEmailOtpAsync(SendEmailOtpRequestDto sendEmailOtpRequestDto);
         Task SendPhoneOtpAsync(SendPhoneOtpRequestDto sendPhoneOtpRequestDto);
-        Task<OauthVerificationResponseDto> ExternalProviderOauthLogin(OauthVerificationRequestDto oauthVerificationRequestDto);
+        Task<OauthVerificationResponseDto> ExternalProviderOauthLogin(
+            ExternalProviderOauthLoginRequestDto externalProviderOauthLoginRequestDto);
     }
 }

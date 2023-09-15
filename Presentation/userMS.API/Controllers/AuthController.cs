@@ -18,7 +18,6 @@ namespace userMS.API.Controllers
         private readonly AppSettings _options;
 
         public AuthController(IAuthService authService,
-            IFirebaseAuthService firebaseAuthService,
             IOptions<AppSettings> options)
         {
             _authService = authService;
@@ -100,7 +99,6 @@ namespace userMS.API.Controllers
             return Ok(verificationResult);
         }
 
-        // endpoints that serves user to google login flow
         [HttpGet(RoutingUrls.Auth.GoogleOauth)]
         public IActionResult GoogleLogin()
         {
@@ -112,7 +110,6 @@ namespace userMS.API.Controllers
             return Challenge(properties, "Google");
         }
 
-        // endpoints that redirects user to google login page
         [HttpGet(RoutingUrls.Auth.GoogleOauthCallback)]
         public async Task<IActionResult> GoogleLoginCallback()
         {
@@ -127,14 +124,15 @@ namespace userMS.API.Controllers
             var providerId = "google.com";
 
             var accessToken = authResult.Properties.GetTokenValue("access_token");
+            // TODO access token null handler
 
-            var verificationRequestDto = new OauthVerificationRequestDto
+            var externalProviderOauthLoginRequestDto = new ExternalProviderOauthLoginRequestDto
             {
-                RequestUri = "https://localhost:7010",  // request uri is subject to change
-                PostBody = $"access_token={accessToken}&providerId={providerId}"
+                AccessToken = accessToken,
+                ProviderId = providerId
             };
 
-            var verificationResult = await _authService.ExternalProviderOauthLogin(verificationRequestDto);
+            var verificationResult = await _authService.ExternalProviderOauthLogin(externalProviderOauthLoginRequestDto);
 
             return Ok(verificationResult);
         }
@@ -150,7 +148,6 @@ namespace userMS.API.Controllers
             return Challenge(properties, "Github");
         }
 
-        // endpoints that redirects user to google login page
         [HttpGet(RoutingUrls.Auth.GithubOauthCallback)]
         public async Task<IActionResult> GithubLoginCallback()
         {
@@ -166,54 +163,52 @@ namespace userMS.API.Controllers
 
             var accessToken = authResult.Properties.GetTokenValue("access_token");
 
-            var verificationRequestDto = new OauthVerificationRequestDto
+            var externalProviderOauthLoginRequestDto = new ExternalProviderOauthLoginRequestDto
             {
-                RequestUri = "https://localhost:7010",  // request uri is subject to change
-                PostBody = $"access_token={accessToken}&providerId={providerId}"
+                AccessToken = accessToken,
+                ProviderId = providerId
             };
 
-            var verificationResult = await _authService.ExternalProviderOauthLogin(verificationRequestDto);
+            var verificationResult = await _authService.ExternalProviderOauthLogin(externalProviderOauthLoginRequestDto);
 
             return Ok(verificationResult);
         }
 
-        // endpoints that serves user to google login flow
-        [HttpGet(RoutingUrls.Auth.MicrosoftOauth)]
-        public IActionResult MicrosoftLogin()
-        {
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action(nameof(MicrosoftLoginCallback)),
-            };
+        //[HttpGet(RoutingUrls.Auth.MicrosoftOauth)]
+        //public IActionResult MicrosoftLogin()
+        //{
+        //    var properties = new AuthenticationProperties
+        //    {
+        //        RedirectUri = Url.Action(nameof(MicrosoftLoginCallback)),
+        //    };
 
-            return Challenge(properties, "Microsoft");
-        }
+        //    return Challenge(properties, "Microsoft");
+        //}
 
-        // endpoints that redirects user to google login page
-        [HttpGet(RoutingUrls.Auth.MicrosoftOauthCallback)]
-        public async Task<IActionResult> MicrosoftLoginCallback()
-        {
-            var authResult = await HttpContext.AuthenticateAsync("Microsoft");
+        //[HttpGet(RoutingUrls.Auth.MicrosoftOauthCallback)]
+        //public async Task<IActionResult> MicrosoftLoginCallback()
+        //{
+        //    var authResult = await HttpContext.AuthenticateAsync("Microsoft");
 
-            if (!authResult.Succeeded)
-            {
-                // TODO : Handle authentication failure
-                return BadRequest();
-            }
+        //    if (!authResult.Succeeded)
+        //    {
+        //        // TODO : Handle authentication failure
+        //        return BadRequest();
+        //    }
 
-            var providerId = "microsoft.com";
+        //    var providerId = "microsoft.com";
 
-            var accessToken = authResult.Properties.GetTokenValue("access_token");
+        //    var accessToken = authResult.Properties.GetTokenValue("access_token");
 
-            var verificationRequestDto = new OauthVerificationRequestDto
-            {
-                RequestUri = "https://localhost:7010",  // request uri is subject to change
-                PostBody = $"access_token={accessToken}&providerId={providerId}"
-            };
+        //    var externalProviderOauthLoginRequestDto = new ExternalProviderOauthLoginRequestDto
+        //    {
+        //        AccessToken = accessToken,
+        //        ProviderId = providerId
+        //    };
 
-            var verificationResult = await _authService.ExternalProviderOauthLogin(verificationRequestDto);
+        //    var verificationResult = await _authService.ExternalProviderOauthLogin(externalProviderOauthLoginRequestDto);
 
-            return Ok(verificationResult);
-        }
+        //    return Ok(verificationResult);
+        //}
     }
 }

@@ -10,7 +10,6 @@ using userMS.Domain.Entities;
 using userMS.Domain.Exceptions;
 using userMS.Infrastructure.Statics;
 
-
 namespace userMS.Persistence.Services
 {
     public class AuthService : IAuthService
@@ -23,6 +22,7 @@ namespace userMS.Persistence.Services
         private readonly IOtpService _otpService;
         private readonly IFirebaseAuthService _firebaseAuthService;
         private readonly IRedisCacheService _cacheService;
+        private readonly HttpClient _httpClient;
 
         public AuthService(
             IRepository<User, Guid> userRepository, 
@@ -32,7 +32,8 @@ namespace userMS.Persistence.Services
             ISmsService smsService,
             IOtpService otpService,
             IFirebaseAuthService firebaseAuthService,
-            IRedisCacheService cacheService)
+            IRedisCacheService cacheService,
+            HttpClient httpClient)
         {
             _userRepository = userRepository;
             _mapper = mapper;
@@ -42,6 +43,7 @@ namespace userMS.Persistence.Services
             _otpService = otpService;
             _firebaseAuthService = firebaseAuthService;
             _cacheService = cacheService;
+            _httpClient = httpClient;
         }
 
         public async Task<FirebaseAuthResponseDto> IdentifierLoginUserAsync(UsernameOrEmailLoginUserDto userLog)
@@ -187,11 +189,57 @@ namespace userMS.Persistence.Services
             return firebaseResponse;
         }
 
-        public async Task<OauthVerificationResponseDto> ExternalProviderOauthLogin(OauthVerificationRequestDto oauthVerificationRequestDto)
+        public async Task<OauthVerificationResponseDto> ExternalProviderOauthLogin(ExternalProviderOauthLoginRequestDto 
+            externalProviderOauthLoginRequestDto)
         {
+            var userEmail = "";
+            var username = "";
+
+            var requestAccessToken = externalProviderOauthLoginRequestDto.AccessToken;
+
+            var requestProviderId = externalProviderOauthLoginRequestDto.ProviderId;
+
+            // in order to gather user info we need to adjust the uri of the api call according to auth provider
+            if (requestProviderId == "google.com")
+            {
+                // api call to grab user's identifier (email in this case)
+                var userInfoResponse = await _httpClient.GetAsync(
+                    $"https://www.googleapis.com/oauth2/v1/userinfo?access_token={requestAccessToken}");
+
+                if (userInfoResponse.IsSuccessStatusCode)
+                {
+                    var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
+                    dynamic userInfo = Newtonsoft.Json.JsonConvert.DeserializeObject(userInfoJson);
+
+                    userEmail = userInfo.email;
+                    username = userInfo.name;
+                }
+            }
+
+            // TODO if user with the identifier already exists - handle user accordingly
+
+
+            #region Firebase sign in
+            var oauthVerificationRequestDto = new OauthVerificationRequestDto
+            {
+                RequestUri = "https://localhost:7010",  // request uri is subject to change
+                PostBody = $"access_token={requestAccessToken}&providerId={requestProviderId}"
+            };
+
             var verificationResult = await _firebaseAuthService.FirebaseOauthLoginAsync(oauthVerificationRequestDto);
 
-            // TODO handle DB operations after external provider login
+            #endregion
+
+            // handle DB operations after external provider login
+            // below part is expected to run if user doesn't exist with its identifier (mostly email)
+
+            var user = new User
+            {
+                Email = userEmail,
+                UserName = username
+            };
+
+            await _userRepository.AddAsync(user);
 
             return verificationResult;
         }

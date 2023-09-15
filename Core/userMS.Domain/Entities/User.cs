@@ -15,11 +15,21 @@ namespace userMS.Domain.Entities
         public string PhoneNo { get; set; }
 
         // createdby logic will change (think as if it is a placeholder for now)
-        public override Guid CreatedBy { get; set; }
+        public override Guid CreatedBy { get; set; } = Guid.NewGuid();
 
         public bool IsEmailVerified = false;
 
         public bool IsPhoneNumberVerified = false;
 
+        public List<ProviderData> ProviderData { get; set; }
+    }
+
+    public class ProviderData
+    {
+        public string FirebaseUid { get; set; }
+
+        public string Identifier { get; set; }
+
+        public string Provider { get; set; }
     }
 }

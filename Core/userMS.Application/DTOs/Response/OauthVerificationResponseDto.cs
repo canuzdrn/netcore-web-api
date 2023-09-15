@@ -9,6 +9,9 @@ namespace userMS.Application.DTOs.Response
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
+        [JsonProperty("email")]
+        public string Email { get; set; }
+
         [JsonProperty("oauthAccessToken")]
         public string OauthAccessToken { get; set; }
     }
