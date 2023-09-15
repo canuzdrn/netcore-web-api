@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Amazon.Runtime.Internal;
+using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
+using System.Text.Json;
 using userMS.Application.DTOs;
 using userMS.Application.DTOs.Request;
 using userMS.Application.DTOs.Response;
@@ -108,7 +110,7 @@ namespace userMS.Persistence.Services
             return phoneSignInResponseData;
         }
 
-        public async Task<GoogleVerificationResponseDto> FirebaseGoogleLoginVerification(GoogleVerificationRequestDto googleVerificationRequestDto)
+        public async Task<OauthVerificationResponseDto> FirebaseOauthLoginAsync(OauthVerificationRequestDto googleVerificationRequestDto)
         {
             var requestUrl = new Uri($"{_options.IdentityToolkitBaseUrl}:signInWithIdp?key={_options.FirebaseApiKey}");
 
@@ -117,11 +119,14 @@ namespace userMS.Persistence.Services
             if (!response.IsSuccessStatusCode)
             {
                 //TODO : handle unsuccessful case
+                var error = await response.Content.ReadFromJsonAsync<FirebaseErrorResponseDto>();
+
+                throw new BadRequestException(error.Error.Message);
             }
 
-            var debugData = await response.Content.ReadAsStringAsync();
+            // var debugData = await response.Content.ReadAsStringAsync();
 
-            var responseData = await response.Content.ReadFromJsonAsync<GoogleVerificationResponseDto>();
+            var responseData = await response.Content.ReadFromJsonAsync<OauthVerificationResponseDto>();
 
             return responseData;
         }

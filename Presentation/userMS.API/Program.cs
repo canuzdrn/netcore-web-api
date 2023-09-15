@@ -1,15 +1,20 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using Octokit;
 using System.Reflection;
+using System.Security.Claims;
+using System.Text.Json;
 using userMS.Application.DTOs;
 using userMS.Application.Filters;
 using userMS.Application.Repositories;
@@ -21,6 +26,8 @@ using userMS.Infrastructure.Services;
 using userMS.Persistence.Data;
 using userMS.Persistence.Repositories;
 using userMS.Persistence.Services;
+using ProductHeaderValue = Octokit.ProductHeaderValue;
+using User = userMS.Domain.Entities.User;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -155,9 +162,60 @@ builder.Services
     .AddCookie()
     .AddGoogle(options =>
     {
-        options.ClientId = builder.Configuration["Google:ClientId"];
-        options.ClientSecret = builder.Configuration["Google:ClientSecret"];
+        options.ClientId = configuration["Google:ClientId"];
+        options.ClientSecret = configuration["Google:ClientSecret"];
         options.SaveTokens = true;
+    });
+
+
+builder.Services.AddAuthentication()
+    .AddMicrosoftAccount(options =>
+    {
+        options.ClientId = configuration["Microsoft:ClientId"];
+        options.ClientSecret = configuration["Microsoft:ClientSecret"];
+        options.SaveTokens = true;
+    });
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = "Github";
+})
+    .AddOAuth("Github", options => {
+        options.ClientId = configuration["Github:ClientId"];
+        options.ClientSecret = configuration["Github:ClientSecret"];
+        options.CallbackPath = new PathString("/signin-github");
+
+        options.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
+        options.TokenEndpoint = "https://github.com/login/oauth/access_token";
+        options.UserInformationEndpoint = "https://api.github.com/user";
+        options.ClaimsIssuer = "GitHub";
+
+        options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "login");
+        options.ClaimActions.MapJsonKey("urn:github:name", "name");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email", ClaimValueTypes.Email);
+
+        options.SaveTokens = true;
+
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = async context =>
+            {
+                var client = new GitHubClient(new ProductHeaderValue("tg-core-talent-oauth"));
+                client.Credentials = new Credentials(context.AccessToken);
+                var user = await client.User.Current();
+
+                var userJson = System.Text.Json.JsonSerializer.Serialize(user);
+
+                // Parse the JSON string into a JsonElement
+                using (JsonDocument doc = JsonDocument.Parse(userJson))
+                {
+                    context.RunClaimActions(doc.RootElement);
+                }
+            }
+        };
     });
 
 

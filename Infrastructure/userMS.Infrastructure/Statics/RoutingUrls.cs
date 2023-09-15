@@ -19,13 +19,19 @@
             public const string SendEmailOtp = "otp/send/email";
 
             public const string SendPhoneOtp = "otp/send/phone";
-        }
 
-        public static class FirebaseAuth
-        {
-            public const string Register = "firebase/register";
+            public const string GoogleOauth = "oauth/signin-google";
 
-            public const string Login = "firebase/login";
+            public const string GoogleOauthCallback = "oauth/signin-google-callback";
+
+            public const string GithubOauth = "oauth/signin-github";
+
+            public const string GithubOauthCallback = "oauth/signin-github-callback";
+
+            public const string MicrosoftOauth = "oauth/signin-microsoft";
+
+            public const string MicrosoftOauthCallback = "oauth/signin-microsoft-callback";
+
         }
 
         public static class User

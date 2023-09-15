@@ -2,10 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Net;
-using System.Text.Json;
 using userMS.Application.DTOs;
 using userMS.Application.DTOs.Request;
-using userMS.Application.DTOs.Response;
 using userMS.Application.Services;
 using userMS.Infrastructure.Com;
 using userMS.Infrastructure.Statics;
@@ -17,7 +15,6 @@ namespace userMS.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IFirebaseAuthService _firebaseAuthService;
         private readonly AppSettings _options;
 
         public AuthController(IAuthService authService,
@@ -25,7 +22,6 @@ namespace userMS.API.Controllers
             IOptions<AppSettings> options)
         {
             _authService = authService;
-            _firebaseAuthService = firebaseAuthService;
             _options = options.Value;
         }
 
@@ -105,8 +101,8 @@ namespace userMS.API.Controllers
         }
 
         // endpoints that serves user to google login flow
-        [HttpGet("account/google-login")]
-        public async Task<IActionResult> GoogleLogin()
+        [HttpGet(RoutingUrls.Auth.GoogleOauth)]
+        public IActionResult GoogleLogin()
         {
             var properties = new AuthenticationProperties
             {
@@ -117,7 +113,7 @@ namespace userMS.API.Controllers
         }
 
         // endpoints that redirects user to google login page
-        [HttpGet("account/google-login-callback")]
+        [HttpGet(RoutingUrls.Auth.GoogleOauthCallback)]
         public async Task<IActionResult> GoogleLoginCallback()
         {
             var authResult = await HttpContext.AuthenticateAsync("Google");
@@ -128,18 +124,96 @@ namespace userMS.API.Controllers
                 return BadRequest();
             }
 
+            var providerId = "google.com";
+
             var accessToken = authResult.Properties.GetTokenValue("access_token");
 
-            return Ok(accessToken);
-        }
+            var verificationRequestDto = new OauthVerificationRequestDto
+            {
+                RequestUri = "https://localhost:7010",  // request uri is subject to change
+                PostBody = $"access_token={accessToken}&providerId={providerId}"
+            };
 
-        [HttpPost("account/google-login-to-firebase")]
-        public async Task<IActionResult> GoogleLoginToFirebase([FromBody] GoogleVerificationRequestDto googleVerificationRequestDto)
-        {
-            var verificationResult = await _firebaseAuthService.FirebaseGoogleLoginVerification(googleVerificationRequestDto);
+            var verificationResult = await _authService.ExternalProviderOauthLogin(verificationRequestDto);
 
             return Ok(verificationResult);
         }
 
+        [HttpGet(RoutingUrls.Auth.GithubOauth)]
+        public IActionResult GithubLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GithubLoginCallback)),
+            };
+
+            return Challenge(properties, "Github");
+        }
+
+        // endpoints that redirects user to google login page
+        [HttpGet(RoutingUrls.Auth.GithubOauthCallback)]
+        public async Task<IActionResult> GithubLoginCallback()
+        {
+            var authResult = await HttpContext.AuthenticateAsync("Github");
+
+            if (!authResult.Succeeded)
+            {
+                // TODO : Handle authentication failure
+                return BadRequest();
+            }
+
+            var providerId = "github.com";
+
+            var accessToken = authResult.Properties.GetTokenValue("access_token");
+
+            var verificationRequestDto = new OauthVerificationRequestDto
+            {
+                RequestUri = "https://localhost:7010",  // request uri is subject to change
+                PostBody = $"access_token={accessToken}&providerId={providerId}"
+            };
+
+            var verificationResult = await _authService.ExternalProviderOauthLogin(verificationRequestDto);
+
+            return Ok(verificationResult);
+        }
+
+        // endpoints that serves user to google login flow
+        [HttpGet(RoutingUrls.Auth.MicrosoftOauth)]
+        public IActionResult MicrosoftLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(MicrosoftLoginCallback)),
+            };
+
+            return Challenge(properties, "Microsoft");
+        }
+
+        // endpoints that redirects user to google login page
+        [HttpGet(RoutingUrls.Auth.MicrosoftOauthCallback)]
+        public async Task<IActionResult> MicrosoftLoginCallback()
+        {
+            var authResult = await HttpContext.AuthenticateAsync("Microsoft");
+
+            if (!authResult.Succeeded)
+            {
+                // TODO : Handle authentication failure
+                return BadRequest();
+            }
+
+            var providerId = "microsoft.com";
+
+            var accessToken = authResult.Properties.GetTokenValue("access_token");
+
+            var verificationRequestDto = new OauthVerificationRequestDto
+            {
+                RequestUri = "https://localhost:7010",  // request uri is subject to change
+                PostBody = $"access_token={accessToken}&providerId={providerId}"
+            };
+
+            var verificationResult = await _authService.ExternalProviderOauthLogin(verificationRequestDto);
+
+            return Ok(verificationResult);
+        }
     }
 }

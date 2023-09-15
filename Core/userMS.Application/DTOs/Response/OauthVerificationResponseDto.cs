@@ -1,14 +1,15 @@
 ﻿using Newtonsoft.Json;
-
 namespace userMS.Application.DTOs.Response
 {
-    public class GoogleVerificationResponseDto
+    public class OauthVerificationResponseDto
     {
         [JsonProperty("idToken")]
         public string IdToken { get; set; }
+
+        [JsonProperty("providerId")]
+        public string ProviderId { get; set; }
+
         [JsonProperty("oauthAccessToken")]
         public string OauthAccessToken { get; set; }
-        [JsonProperty("oauthExpireIn")]
-        public int OauthExpireIn { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using userMS.Application.DTOs;
 using userMS.Application.DTOs.Request;
+using userMS.Application.DTOs.Response;
 
 namespace userMS.Application.Services
 {
@@ -13,5 +14,6 @@ namespace userMS.Application.Services
         Task<string> GetLoggedInEmailAsync(PhoneLoginUserDto userLog);
         Task SendEmailOtpAsync(SendEmailOtpRequestDto sendEmailOtpRequestDto);
         Task SendPhoneOtpAsync(SendPhoneOtpRequestDto sendPhoneOtpRequestDto);
+        Task<OauthVerificationResponseDto> ExternalProviderOauthLogin(OauthVerificationRequestDto oauthVerificationRequestDto);
     }
 }

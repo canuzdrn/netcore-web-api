@@ -187,6 +187,15 @@ namespace userMS.Persistence.Services
             return firebaseResponse;
         }
 
+        public async Task<OauthVerificationResponseDto> ExternalProviderOauthLogin(OauthVerificationRequestDto oauthVerificationRequestDto)
+        {
+            var verificationResult = await _firebaseAuthService.FirebaseOauthLoginAsync(oauthVerificationRequestDto);
+
+            // TODO handle DB operations after external provider login
+
+            return verificationResult;
+        }
+
         public async Task SendEmailOtpAsync(SendEmailOtpRequestDto sendEmailOtpRequestDto)
         {
             var user = (await _userRepository.FindByAsync(r => r.Email == sendEmailOtpRequestDto.Email))
