@@ -97,11 +97,32 @@ namespace userMS.Persistence.Services
             if (!user.IsPhoneNumberVerified)
                 throw new BadRequestException(ErrorMessages.PhoneNumberIsNotVerified);
 
+            #region Firebase phone sign in
+
             var firebaseResponse = await _firebaseAuthService.FirebasePhoneLoginAsync(
                 new FirebasePhoneSignInRequestDto
                 {
                     PhoneNumber = userLog.PhoneNumber,
                 });
+
+            #endregion
+
+            #region Link phone provider to the existing user
+
+            var providerData = new ProviderData
+            {
+                FirebaseUid = firebaseResponse.LocalId,
+                Identifier = userLog.PhoneNumber,
+                Provider = "phone"
+            };
+
+            user.ProviderData.RemoveAll(r => r.Provider == "phone");
+
+            user.ProviderData.Add(providerData);
+
+            await _userRepository.UpdateAsync(user);
+
+            #endregion
 
             // email
             var email = await GetLoggedInEmailAsync(userLog);
