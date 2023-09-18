@@ -137,6 +137,46 @@ namespace userMS.API.Controllers
             return Ok(verificationResult);
         }
 
+        [HttpGet(RoutingUrls.Auth.TwitterOauth)]
+        public IActionResult TwitterLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(TwitterLoginCallBack)),
+            };
+
+            return Challenge(properties, "Twitter");
+        }
+
+        [HttpGet(RoutingUrls.Auth.TwitterOauthCallback)]
+        public async Task<IActionResult> TwitterLoginCallBack()
+        {
+            var authResult = await HttpContext.AuthenticateAsync("Twitter");
+
+            if (!authResult.Succeeded)
+            {
+                // TODO : Handle authentication failure
+                return BadRequest();
+            }
+
+            var providerId = "twitter.com";
+
+            var accessToken = authResult.Properties.GetTokenValue("access_token");
+
+            var accessTokenSecret = authResult.Principal.Claims.FirstOrDefault(c => c.Type == "oauth_token_secret")?.Value;
+
+            var externalProviderOauthLoginRequestDto = new ExternalProviderOauthLoginRequestDto
+            {
+                AccessToken = accessToken,
+                ProviderId = providerId,
+                OauthTokenSecret = accessTokenSecret
+            };
+
+            var verificationResult = await _authService.ExternalProviderOauthLogin(externalProviderOauthLoginRequestDto);
+
+            return Ok(verificationResult);
+        }
+
         [HttpGet(RoutingUrls.Auth.GithubOauth)]
         public IActionResult GithubLogin()
         {

@@ -6,6 +6,11 @@ namespace userMS.Application.DTOs.Response
         [JsonProperty("idToken")]
         public string IdToken { get; set; }
 
+        [JsonProperty("localId")]
+        public string LocalId { get; set; }
+        [JsonProperty("displayName")]
+        public string DisplayName { get; set; }
+
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 

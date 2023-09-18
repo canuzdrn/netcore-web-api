@@ -35,5 +35,7 @@
 
         public const string EmailIsAlreadyVerified = "User's email address is already verified !";
         public const string PhoneIsAlreadyVerified = "User's phone number is already verified !";
+
+        public const string UserIsAlreadySignedInWithSameProvider = "User has already signed in with the same provider !";
     }
 }

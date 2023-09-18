@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Authentication.Twitter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -20,7 +21,6 @@ using userMS.Application.Filters;
 using userMS.Application.Repositories;
 using userMS.Application.Services;
 using userMS.Application.Validators;
-using userMS.Domain.Entities;
 using userMS.Infrastructure.Com;
 using userMS.Infrastructure.Services;
 using userMS.Persistence.Data;
@@ -176,6 +176,28 @@ builder.Services.AddAuthentication()
         options.SaveTokens = true;
     });
 
+builder.Services.AddAuthentication()
+    .AddTwitter(options =>
+    {
+        options.ConsumerKey = configuration["Twitter:ApiKey"];
+        options.ConsumerSecret = configuration["Twitter:ApiKeySecret"];
+        options.SaveTokens = true;
+
+        options.Events = new TwitterEvents
+        {
+            OnCreatingTicket = context =>
+            {
+                // Extract and add the oauth_token_secret as a claim
+                context.Principal.AddIdentity(new ClaimsIdentity(new[]
+                {
+                    new Claim("oauth_token_secret", context.AccessTokenSecret)
+                }));
+
+                return Task.CompletedTask;
+            }
+        };
+    });
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -207,7 +229,7 @@ builder.Services.AddAuthentication(options =>
                 client.Credentials = new Credentials(context.AccessToken);
                 var user = await client.User.Current();
 
-                var userJson = System.Text.Json.JsonSerializer.Serialize(user);
+                var userJson = JsonSerializer.Serialize(user);
 
                 // Parse the JSON string into a JsonElement
                 using (JsonDocument doc = JsonDocument.Parse(userJson))

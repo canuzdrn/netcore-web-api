@@ -21,7 +21,7 @@ namespace userMS.Domain.Entities
 
         public bool IsPhoneNumberVerified = false;
 
-        public List<ProviderData> ProviderData { get; set; }
+        public List<ProviderData> ProviderData { get; set; } = new List<ProviderData>();
     }
 
     public class ProviderData

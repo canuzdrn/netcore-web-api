@@ -24,6 +24,10 @@
 
             public const string GoogleOauthCallback = "oauth/signin-google-callback";
 
+            public const string TwitterOauth = "oauth/signin-twitter";
+
+            public const string TwitterOauthCallback = "oauth/signin-twitter-callback";
+
             public const string GithubOauth = "oauth/signin-github";
 
             public const string GithubOauthCallback = "oauth/signin-github-callback";

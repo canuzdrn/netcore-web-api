@@ -109,11 +109,11 @@ namespace userMS.Persistence.Services
             return phoneSignInResponseData;
         }
 
-        public async Task<OauthVerificationResponseDto> FirebaseOauthLoginAsync(OauthVerificationRequestDto googleVerificationRequestDto)
+        public async Task<OauthVerificationResponseDto> FirebaseOauthLoginAsync(OauthVerificationRequestDto oauthVerificationRequestDto)
         {
             var requestUrl = new Uri($"{_options.IdentityToolkitBaseUrl}:signInWithIdp?key={_options.FirebaseApiKey}");
 
-            var response = await _httpClient.PostAsJsonAsync(requestUrl, googleVerificationRequestDto);
+            var response = await _httpClient.PostAsJsonAsync(requestUrl, oauthVerificationRequestDto);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -125,7 +125,7 @@ namespace userMS.Persistence.Services
 
             var responseData = await response.Content.ReadFromJsonAsync<OauthVerificationResponseDto>();
 
-            #region verify email of the user if email is not verified
+            #region send verification email to the user if email is not verified
 
             var json = await response.Content.ReadAsStringAsync();
 
@@ -148,6 +148,22 @@ namespace userMS.Persistence.Services
             }
 
             #endregion
+
+            return responseData;
+        }
+
+        public async Task<FirebaseGetProvidersResponseDto> FirebaseGetProvidersAsync(FirebaseGetProvidersRequestDto firebaseGetProvidersRequestDto)
+        {
+            var requestUrl = new Uri($"{_options.IdentityToolkitBaseUrl}:createAuthUri?key={_options.FirebaseApiKey}");
+
+            var response = await _httpClient.PostAsJsonAsync(requestUrl, firebaseGetProvidersRequestDto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // TODO handle unsuccessful case
+            }
+
+            var responseData = await response.Content.ReadFromJsonAsync<FirebaseGetProvidersResponseDto>();
 
             return responseData;
         }

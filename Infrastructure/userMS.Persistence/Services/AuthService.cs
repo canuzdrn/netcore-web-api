@@ -137,6 +137,18 @@ namespace userMS.Persistence.Services
 
             await IsExistIdenticalInfoAsync(user);
 
+            // want -> email doesnt exist or (email exists and provider doesnt contain 'password')
+            var userWithSameEmail = (await _userRepository.FindByAsync(r => r.Email == user.Email)).FirstOrDefault();
+
+            if (userWithSameEmail is not null)
+            {
+                foreach (ProviderData provider in userWithSameEmail.ProviderData)
+                {
+                    if (provider.Provider == "password")
+                        throw new BadRequestException(ErrorMessages.UserIsAlreadySignedInWithSameProvider);
+                }
+            }
+
             user.Password = BCrypt.Net.BCrypt.HashPassword(providedPassword);
 
             var firebaseResponse = await _firebaseAuthService.FirebaseRegisterAsync(
@@ -146,7 +158,27 @@ namespace userMS.Persistence.Services
                     Password = userReg.Password,
                 });
 
-            await _userRepository.AddAsync(user);
+            var providerData = new ProviderData
+            {
+                FirebaseUid = firebaseResponse.LocalId,
+                Identifier = firebaseResponse.Email,
+                Provider = "password"
+            };
+
+            if (userWithSameEmail is null)
+            {
+                user.ProviderData.Add(providerData);
+
+                await _userRepository.AddAsync(user);
+            }
+            else
+            {
+                userWithSameEmail.ProviderData.Add(providerData);
+                userWithSameEmail.Password = user.Password;
+                userWithSameEmail.PhoneNo = user.PhoneNo;
+
+                await _userRepository.UpdateAsync(userWithSameEmail);
+            }
 
             #region Email and otp sending logic
             // otp generation
@@ -192,54 +224,70 @@ namespace userMS.Persistence.Services
         public async Task<OauthVerificationResponseDto> ExternalProviderOauthLogin(ExternalProviderOauthLoginRequestDto 
             externalProviderOauthLoginRequestDto)
         {
-            var userEmail = "";
-            var username = "";
-
             var requestAccessToken = externalProviderOauthLoginRequestDto.AccessToken;
 
             var requestProviderId = externalProviderOauthLoginRequestDto.ProviderId;
 
-            // in order to gather user info we need to adjust the uri of the api call according to auth provider
-            if (requestProviderId == "google.com")
-            {
-                // api call to grab user's identifier (email in this case)
-                var userInfoResponse = await _httpClient.GetAsync(
-                    $"https://www.googleapis.com/oauth2/v1/userinfo?access_token={requestAccessToken}");
+            #region Generate post body for firebase api call
+            var postBody = $"access_token={requestAccessToken}&providerId={requestProviderId}";
 
-                if (userInfoResponse.IsSuccessStatusCode)
-                {
-                    var userInfoJson = await userInfoResponse.Content.ReadAsStringAsync();
-                    dynamic userInfo = Newtonsoft.Json.JsonConvert.DeserializeObject(userInfoJson);
+            if (externalProviderOauthLoginRequestDto.OauthTokenSecret is not null)
+                postBody += $"&oauth_token_secret={externalProviderOauthLoginRequestDto.OauthTokenSecret}";
 
-                    userEmail = userInfo.email;
-                    username = userInfo.name;
-                }
-            }
+            #endregion
 
-            // TODO if user with the identifier already exists - handle user accordingly
-
-
-            #region Firebase sign in
+            #region Firebase oauth sign in
             var oauthVerificationRequestDto = new OauthVerificationRequestDto
             {
                 RequestUri = "https://localhost:7010",  // request uri is subject to change
-                PostBody = $"access_token={requestAccessToken}&providerId={requestProviderId}"
+                PostBody = postBody
             };
 
             var verificationResult = await _firebaseAuthService.FirebaseOauthLoginAsync(oauthVerificationRequestDto);
 
+            // TODO verification result null check
+
             #endregion
 
-            // handle DB operations after external provider login
-            // below part is expected to run if user doesn't exist with its identifier (mostly email)
+            var userInDb = (await _userRepository.FindByAsync(r => r.Email == verificationResult.Email))
+                .FirstOrDefault();
 
-            var user = new User
+            // if user with the identifier already exists - handle user accordingly
+            if (userInDb is not null)
             {
-                Email = userEmail,
-                UserName = username
-            };
+                var providerData = new ProviderData
+                {
+                    FirebaseUid = verificationResult.LocalId,
+                    Identifier = verificationResult.Email,
+                    Provider = verificationResult.ProviderId
+                };
 
-            await _userRepository.AddAsync(user);
+                userInDb.ProviderData.RemoveAll(r => r.Provider == verificationResult.ProviderId);
+
+                userInDb.ProviderData.Add(providerData);
+
+                await _userRepository.UpdateAsync(userInDb);
+            }
+            // below part is expected to run if user doesn't exist with its identifier (mostly email)
+            else
+            {
+                var user = new User
+                {
+                    Email = verificationResult.Email,
+                    UserName = verificationResult.DisplayName
+                };
+
+                var providerData = new ProviderData
+                {
+                    FirebaseUid = verificationResult.LocalId,
+                    Identifier = verificationResult.Email,
+                    Provider = verificationResult.ProviderId
+                };
+
+                user.ProviderData.Add(providerData);
+
+                await _userRepository.AddAsync(user);
+            }
 
             return verificationResult;
         }
@@ -435,7 +483,6 @@ namespace userMS.Persistence.Services
         {
             var userNameExists = await _userRepository.AnyAsync(u => u.UserName == user.UserName);
             var phoneNoExists = await _userRepository.AnyAsync(u => u.PhoneNo == user.PhoneNo);
-            var emailExists = await _userRepository.AnyAsync(u => u.Email == user.Email);
 
             if (userNameExists)
             {
@@ -445,11 +492,6 @@ namespace userMS.Persistence.Services
             {
                 throw new DuplicateEntityException(nameof(User), nameof(User.PhoneNo), user.PhoneNo);
             }
-            else if (emailExists)
-            {
-                throw new DuplicateEntityException(nameof(User), nameof(User.Email), user.Email);
-            }
-
         }
     }
 }

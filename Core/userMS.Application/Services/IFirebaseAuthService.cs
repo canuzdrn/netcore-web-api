@@ -9,6 +9,7 @@ namespace userMS.Application.Services
         Task<FirebaseAuthResponseDto> FirebaseEmailLoginAsync(FirebaseEmailSignInRequestDto request);
         Task<FirebaseAuthResponseDto> FirebasePhoneLoginAsync(FirebasePhoneSignInRequestDto request);
         Task<FirebaseAuthResponseDto> FirebaseRegisterAsync(FirebaseEmailSignInRequestDto request);
-        Task<OauthVerificationResponseDto> FirebaseOauthLoginAsync(OauthVerificationRequestDto googleVerificationRequestDto);
+        Task<OauthVerificationResponseDto> FirebaseOauthLoginAsync(OauthVerificationRequestDto oauthVerificationRequestDto);
+        Task<FirebaseGetProvidersResponseDto> FirebaseGetProvidersAsync(FirebaseGetProvidersRequestDto firebaseGetProvidersRequestDto);
     }
 }
