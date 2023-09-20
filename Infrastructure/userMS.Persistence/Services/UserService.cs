@@ -59,7 +59,7 @@ namespace userMS.Persistence.Services
 
             if (!allUnique)
             {
-                throw new DuplicateEntityException(ErrorMessages.IdenticalInfoInBulk);
+                throw new DuplicateEntityException(ErrorMessages.User.IdenticalInfoInBulk);
             }
 
             foreach (User user in users)
@@ -84,7 +84,7 @@ namespace userMS.Persistence.Services
 
             if (!isExists)
             {
-                throw new NotFoundException(ErrorMessages.UserNotFound);
+                throw new NotFoundException(ErrorMessages.User.UserNotFound);
             }
 
             #region delete user if it is cached
@@ -103,7 +103,7 @@ namespace userMS.Persistence.Services
 
             if (user is null)
             {
-                throw new NotFoundException(ErrorMessages.UserIdNotFound);
+                throw new NotFoundException(ErrorMessages.User.UserIdNotFound);
             }
 
             #region delete user if it is cached
@@ -127,7 +127,7 @@ namespace userMS.Persistence.Services
             {
                 if (!(await IsUserExists(user)))
                 {
-                    throw new NotFoundException(ErrorMessages.UserNotFoundInBulk);
+                    throw new NotFoundException(ErrorMessages.User.UserNotFoundInBulk);
                 }
             }
 
@@ -158,7 +158,7 @@ namespace userMS.Persistence.Services
 
             if(user is null)
             {
-                throw new NotFoundException(ErrorMessages.UsernameNotFound);
+                throw new NotFoundException(ErrorMessages.User.UsernameNotFound);
             }
 
             #region cache newly accessed user
@@ -184,7 +184,7 @@ namespace userMS.Persistence.Services
 
             if (user == null)
             {
-                throw new NotFoundException(ErrorMessages.UserEmailNotFound);
+                throw new NotFoundException(ErrorMessages.User.UserEmailNotFound);
             }
 
             #region cache newly accessed user
@@ -211,7 +211,7 @@ namespace userMS.Persistence.Services
 
             if (user == null)
             {
-                throw new NotFoundException(ErrorMessages.UserIdNotFound);
+                throw new NotFoundException(ErrorMessages.User.UserIdNotFound);
             }
 
             #region cache newly accessed user
@@ -236,7 +236,7 @@ namespace userMS.Persistence.Services
 
             if (user == null)
             {
-                throw new NotFoundException(ErrorMessages.UserPhoneNumberNotFound);
+                throw new NotFoundException(ErrorMessages.User.UserPhoneNumberNotFound);
             }
 
             #region cache newly accessed user
@@ -257,7 +257,7 @@ namespace userMS.Persistence.Services
 
             if (!isExist)
             {
-                throw new NotFoundException(ErrorMessages.UserNotFound);
+                throw new NotFoundException(ErrorMessages.User.UserNotFound);
             }
 
             #region delete (former) user if it is cached
@@ -289,7 +289,7 @@ namespace userMS.Persistence.Services
             // there exist a duplicate key among them
             if (users.GroupBy(u => u.Id).Any(g => g.Count() > 1))
             {
-                throw new BadRequestException(ErrorMessages.DuplicateUserInBulkUpdate);
+                throw new BadRequestException(ErrorMessages.User.DuplicateUserInBulkUpdate);
             }
 
             bool allUnique = !users.GroupBy(u => u.UserName).Any(g => g.Count() > 1)
@@ -298,14 +298,14 @@ namespace userMS.Persistence.Services
 
             if (!allUnique)
             {
-                throw new DuplicateEntityException(ErrorMessages.IdenticalInfoInBulk);
+                throw new DuplicateEntityException(ErrorMessages.User.IdenticalInfoInBulk);
             }
 
             foreach (User user in users)
             {
                 if (!(await _repository.AnyAsync(u => u.Id == user.Id)))
                 {
-                    throw new NotFoundException(ErrorMessages.UserNotFoundInBulk);
+                    throw new NotFoundException(ErrorMessages.User.UserNotFoundInBulk);
                 }
             }
 

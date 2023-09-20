@@ -37,7 +37,7 @@ namespace userMS.Persistence.Services
 
             var responseData = await response.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
 
-            if(responseData is null) throw new BadRequestException(ErrorMessages.FirebaseLoginError);
+            if(responseData is null) throw new BadRequestException(ErrorMessages.Firebase.FirebaseLoginError);
 
             return responseData;
         }
@@ -57,7 +57,7 @@ namespace userMS.Persistence.Services
 
             var responseData = await response.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
 
-            if (responseData is null) throw new BadRequestException(ErrorMessages.FirebaseRegisterError);
+            if (responseData is null) throw new BadRequestException(ErrorMessages.Firebase.FirebaseRegisterError);
 
             return responseData;
         }
@@ -79,7 +79,7 @@ namespace userMS.Persistence.Services
 
             var verificationResponseData = await verificationResponse.Content.ReadFromJsonAsync<FirebasePhoneVerificationResponseDto>();
 
-            if (verificationResponseData is null) throw new BadRequestException(ErrorMessages.FirebaseCouldNotVerifyPhoneNumber);
+            if (verificationResponseData is null) throw new BadRequestException(ErrorMessages.Firebase.FirebaseCouldNotVerifyPhoneNumber);
 
             #endregion
 
@@ -104,7 +104,7 @@ namespace userMS.Persistence.Services
 
             var phoneSignInResponseData = await phoneSignInResponse.Content.ReadFromJsonAsync<FirebaseAuthResponseDto>();
 
-            if (phoneSignInResponseData is null) throw new BadRequestException(ErrorMessages.FirebaseCouldNotSignInWithPhoneNumber);
+            if (phoneSignInResponseData is null) throw new BadRequestException(ErrorMessages.Firebase.FirebaseCouldNotSignInWithPhoneNumber);
 
             return phoneSignInResponseData;
         }
@@ -117,7 +117,6 @@ namespace userMS.Persistence.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                //TODO : handle unsuccessful case
                 var error = await response.Content.ReadFromJsonAsync<FirebaseErrorResponseDto>();
 
                 throw new BadRequestException(error.Error.Message);
@@ -160,7 +159,7 @@ namespace userMS.Persistence.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                // TODO handle unsuccessful case
+                throw new BadRequestException(ErrorMessages.Firebase.FirebaseCouldNotRetrieveProviders);
             }
 
             var responseData = await response.Content.ReadFromJsonAsync<FirebaseGetProvidersResponseDto>();

@@ -53,13 +53,13 @@ namespace userMS.Persistence.Services
             var user = (await _userRepository.FindByAsync(u => u.Email == email)).FirstOrDefault();
 
             if (user is null)
-                throw new BadRequestException(ErrorMessages.IncorrectIdentifierProvided);
+                throw new BadRequestException(ErrorMessages.Auth.IncorrectIdentifierProvided);
 
             if (!BCrypt.Net.BCrypt.Verify(userLog.Password, user.Password))
-                throw new BadRequestException(ErrorMessages.IncorrectPasswordProvided);
+                throw new BadRequestException(ErrorMessages.Auth.IncorrectPasswordProvided);
 
             if (!user.IsEmailVerified)
-                throw new BadRequestException(ErrorMessages.EmailIsNotVerified);
+                throw new BadRequestException(ErrorMessages.Auth.EmailIsNotVerified);
 
             var firebaseResponse = await _firebaseAuthService.FirebaseEmailLoginAsync(
                 new FirebaseEmailSignInRequestDto
@@ -89,13 +89,13 @@ namespace userMS.Persistence.Services
             var user = (await _userRepository.FindByAsync(u => u.PhoneNo == userLog.PhoneNumber)).FirstOrDefault();
 
             if (user is null)
-                throw new BadRequestException(ErrorMessages.IncorrectIdentifierProvided);
+                throw new BadRequestException(ErrorMessages.Auth.IncorrectIdentifierProvided);
 
             if (!BCrypt.Net.BCrypt.Verify(userLog.Password, user.Password))
-                throw new BadRequestException(ErrorMessages.IncorrectPasswordProvided);
+                throw new BadRequestException(ErrorMessages.Auth.IncorrectPasswordProvided);
 
             if (!user.IsPhoneNumberVerified)
-                throw new BadRequestException(ErrorMessages.PhoneNumberIsNotVerified);
+                throw new BadRequestException(ErrorMessages.Auth.PhoneNumberIsNotVerified);
 
             #region Firebase phone sign in
 
@@ -166,7 +166,7 @@ namespace userMS.Persistence.Services
                 foreach (ProviderData provider in userWithSameEmail.ProviderData)
                 {
                     if (provider.Provider == "password")
-                        throw new BadRequestException(ErrorMessages.UserIsAlreadySignedInWithSameProvider);
+                        throw new BadRequestException(ErrorMessages.Auth.UserIsAlreadySignedInWithSameProvider);
                 }
             }
 
@@ -225,7 +225,7 @@ namespace userMS.Persistence.Services
 
             var saveResult = await _cacheService.SetAsync($"OTP:{otpObjectEmail.TransactionId}", otpObjectEmail, TimeSpan.FromMinutes(5));
 
-            if (saveResult is not true) throw new BadRequestException(ErrorMessages.EmailOtpCannotBeSaved);
+            if (saveResult is not true) throw new BadRequestException(ErrorMessages.External.EmailOtpCannotBeSaved);
             #endregion
 
             #region Phone number verification (otp) logic
@@ -266,7 +266,8 @@ namespace userMS.Persistence.Services
 
             var verificationResult = await _firebaseAuthService.FirebaseOauthLoginAsync(oauthVerificationRequestDto);
 
-            // TODO verification result null check
+            if (verificationResult.IdToken is null)
+                throw new BadRequestException(ErrorMessages.Firebase.FirebaseLoginError);
 
             #endregion
 
@@ -318,9 +319,9 @@ namespace userMS.Persistence.Services
             var user = (await _userRepository.FindByAsync(r => r.Email == sendEmailOtpRequestDto.Email))
                 .FirstOrDefault();
 
-            if (user is null) throw new NotFoundException(ErrorMessages.UserEmailNotFound);
+            if (user is null) throw new NotFoundException(ErrorMessages.User.UserEmailNotFound);
 
-            if (user.IsEmailVerified) throw new BadRequestException(ErrorMessages.EmailIsAlreadyVerified);
+            if (user.IsEmailVerified) throw new BadRequestException(ErrorMessages.Auth.EmailIsAlreadyVerified);
 
             #region Delete cache entries of OTPs if there are any assigned for provided user
 
@@ -345,7 +346,7 @@ namespace userMS.Persistence.Services
             }
             catch
             {
-                throw new BadRequestException(ErrorMessages.EmailCouldntBeSent);
+                throw new BadRequestException(ErrorMessages.External.EmailCouldntBeSent);
             }
 
             // caching otp for further access
@@ -360,7 +361,7 @@ namespace userMS.Persistence.Services
 
             var saveResult = await _cacheService.SetAsync($"OTP:{otpObjectEmail.TransactionId}", otpObjectEmail, TimeSpan.FromMinutes(5));
 
-            if (saveResult is not true) throw new BadRequestException(ErrorMessages.EmailOtpCannotBeSaved);
+            if (saveResult is not true) throw new BadRequestException(ErrorMessages.External.EmailOtpCannotBeSaved);
             #endregion
         }
 
@@ -368,9 +369,9 @@ namespace userMS.Persistence.Services
         {
             var user = (await _userRepository.FindByAsync(r => r.PhoneNo == sendPhoneOtpRequestDto.PhoneNo)).FirstOrDefault();
 
-            if (user is null) throw new NotFoundException(ErrorMessages.UserPhoneNumberNotFound);
+            if (user is null) throw new NotFoundException(ErrorMessages.User.UserPhoneNumberNotFound);
 
-            if (user.IsPhoneNumberVerified) throw new BadRequestException(ErrorMessages.PhoneIsAlreadyVerified);
+            if (user.IsPhoneNumberVerified) throw new BadRequestException(ErrorMessages.Auth.PhoneIsAlreadyVerified);
 
             #region Delete cache entries of OTPs if there are any assigned for provided user
 
@@ -395,7 +396,7 @@ namespace userMS.Persistence.Services
             }
             catch
             {
-                throw new BadRequestException(ErrorMessages.SmsCouldntBeSent);
+                throw new BadRequestException(ErrorMessages.External.SmsCouldntBeSent);
             }
 
 
@@ -410,7 +411,7 @@ namespace userMS.Persistence.Services
             };
             var saveResult = await _cacheService.SetAsync($"OTP:{otpObjectPhone.TransactionId}", otpObjectPhone, TimeSpan.FromMinutes(5));
 
-            if (saveResult is not true) throw new BadRequestException(ErrorMessages.PhoneOtpCannotBeSaved);
+            if (saveResult is not true) throw new BadRequestException(ErrorMessages.External.PhoneOtpCannotBeSaved);
 
             #endregion
         }
@@ -419,19 +420,19 @@ namespace userMS.Persistence.Services
         {
             if (!await _cacheService.HasKeyValue($"OTP:{otpVerificationRequestDto.TransactionId}"))
             {
-                throw new NotFoundException(ErrorMessages.OtpIsExpired);
+                throw new NotFoundException(ErrorMessages.External.OtpIsExpired);
             }
 
             var expectedOtp = await _cacheService.GetAsync<OtpObjectStored>($"OTP:{otpVerificationRequestDto.TransactionId}");
 
             if (expectedOtp.Otp != otpVerificationRequestDto.Otp)
             {
-                throw new BadRequestException(ErrorMessages.OtpIsIncorrect);
+                throw new BadRequestException(ErrorMessages.External.OtpIsIncorrect);
             }
 
             var user = (await _userRepository.FindByAsync(r => r.Id == expectedOtp.UserId)).FirstOrDefault();
 
-            if (user is null) throw new NotFoundException(ErrorMessages.UserNotFound);
+            if (user is null) throw new NotFoundException(ErrorMessages.User.UserNotFound);
 
             // update verification status of the user
             if (otpVerificationRequestDto.VerificationMethod is VerificationMethods.Email)
@@ -465,7 +466,7 @@ namespace userMS.Persistence.Services
             // if user with the provided username is not found, throw bad credentials
             if (loggedUser is null)
             {
-                throw new BadRequestException(ErrorMessages.IncorrectIdentifierProvided);
+                throw new BadRequestException(ErrorMessages.Auth.IncorrectIdentifierProvided);
             }
 
 
@@ -482,7 +483,7 @@ namespace userMS.Persistence.Services
             // if user with the provided username is not found, throw bad credentials
             if (loggedUser is null)
             {
-                throw new BadRequestException(ErrorMessages.IncorrectIdentifierProvided);
+                throw new BadRequestException(ErrorMessages.Auth.IncorrectIdentifierProvided);
             }
 
             return loggedUser.Email;

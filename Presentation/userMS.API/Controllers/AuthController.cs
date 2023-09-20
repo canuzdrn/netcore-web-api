@@ -116,15 +116,15 @@ namespace userMS.API.Controllers
             var authResult = await HttpContext.AuthenticateAsync("Google");
 
             if (!authResult.Succeeded)
-            {
-                // TODO : Handle authentication failure
-                return BadRequest();
-            }
+                return BadRequest(ErrorMessages.External.ExternalProviderAuthenticationFailed);
+            
 
             var providerId = "google.com";
 
             var accessToken = authResult.Properties.GetTokenValue("access_token");
-            // TODO access token null handler
+
+            if (accessToken is null)
+                return BadRequest(ErrorMessages.External.AccessTokenCannotBeRetrieved);
 
             var externalProviderOauthLoginRequestDto = new ExternalProviderOauthLoginRequestDto
             {
@@ -154,14 +154,14 @@ namespace userMS.API.Controllers
             var authResult = await HttpContext.AuthenticateAsync("Twitter");
 
             if (!authResult.Succeeded)
-            {
-                // TODO : Handle authentication failure
-                return BadRequest();
-            }
+                return BadRequest(ErrorMessages.External.ExternalProviderAuthenticationFailed);
 
             var providerId = "twitter.com";
 
             var accessToken = authResult.Properties.GetTokenValue("access_token");
+
+            if (accessToken is null)
+                return BadRequest(ErrorMessages.External.AccessTokenCannotBeRetrieved);
 
             var accessTokenSecret = authResult.Principal.Claims.FirstOrDefault(c => c.Type == "oauth_token_secret")?.Value;
 
@@ -194,14 +194,14 @@ namespace userMS.API.Controllers
             var authResult = await HttpContext.AuthenticateAsync("Github");
 
             if (!authResult.Succeeded)
-            {
-                // TODO : Handle authentication failure
-                return BadRequest();
-            }
+                return BadRequest(ErrorMessages.External.ExternalProviderAuthenticationFailed);
 
             var providerId = "github.com";
 
             var accessToken = authResult.Properties.GetTokenValue("access_token");
+
+            if (accessToken is null)
+                return BadRequest(ErrorMessages.External.AccessTokenCannotBeRetrieved);
 
             var externalProviderOauthLoginRequestDto = new ExternalProviderOauthLoginRequestDto
             {

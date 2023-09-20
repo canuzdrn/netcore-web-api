@@ -27,7 +27,7 @@ namespace userMS.Infrastructure.Services
                 from: new Twilio.Types.PhoneNumber(_options.TwilioSettings.PhoneNumber),
                 to: new Twilio.Types.PhoneNumber(smsSendRequestDto.To));
 
-            if (result is null) throw new BadRequestException(ErrorMessages.SmsCouldntBeSent);
+            if (result is null) throw new BadRequestException(ErrorMessages.External.SmsCouldntBeSent);
 
             return result;
         }
