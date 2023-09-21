@@ -17,9 +17,11 @@ namespace userMS.Domain.Entities
         // createdby logic will change (think as if it is a placeholder for now)
         public override Guid CreatedBy { get; set; } = Guid.NewGuid();
 
-        public bool IsEmailVerified = false;
+        public bool IsEmailVerified { get; set; } = false;
 
-        public bool IsPhoneNumberVerified = false;
+        public bool IsPhoneNumberVerified { get; set; } = false;
+
+        public bool IsNotificationsAllowed { get; set; } = true;
 
         public List<ProviderData> ProviderData { get; set; } = new List<ProviderData>();
     }

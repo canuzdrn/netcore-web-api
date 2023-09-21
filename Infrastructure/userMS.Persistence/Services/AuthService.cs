@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.RegularExpressions;
 using userMS.Application.DTOs;
 using userMS.Application.DTOs.Request;
@@ -310,6 +311,23 @@ namespace userMS.Persistence.Services
 
                 await _userRepository.AddAsync(user);
             }
+
+            #region Notify user if user allowed receiving notifications
+
+            if ((userInDb is null || userInDb.IsNotificationsAllowed) && !verificationResult.Email.IsNullOrEmpty())
+            {
+                var username = userInDb == null ? verificationResult.DisplayName : userInDb.UserName;
+
+                await _emailService.SendExternalLoginEmailAsync(new ExternalLoginEmailRequestDto
+                {
+                    Username = username,
+                    Email = verificationResult.Email,
+                    Provider = verificationResult.ProviderId,
+                    Date = DateTime.Now
+                });
+            }
+
+            #endregion
 
             return verificationResult;
         }

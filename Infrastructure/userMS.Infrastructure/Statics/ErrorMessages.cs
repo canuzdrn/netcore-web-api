@@ -43,6 +43,7 @@
             public const string OtpIsIncorrect = "Verification is failed, incorrect OTP is provided !";
             public const string SmsCouldntBeSent = "Error occured during SMS sending process !";
             public const string EmailCouldntBeSent = "Error occured during Email sending process !";
+            public const string EmailIsNotvalid = "Provided email is invalid or null !";
             public const string ExternalProviderAuthenticationFailed = "Authentication with external provider is failed !";
             public const string AccessTokenCannotBeRetrieved = "Error occured during the retrieval of the access token !";
         }

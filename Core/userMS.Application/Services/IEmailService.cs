@@ -9,5 +9,7 @@ namespace userMS.Application.Services
         Task SendLoginEmailAsync(UserLoginMailRequestDto userLoginMailRequestDto);
 
         Task SendCustomEmailAsync(EmailSendRequestDto emailSendRequestDto);
+
+        Task SendExternalLoginEmailAsync(ExternalLoginEmailRequestDto externalLoginEmailRequestDto);
     }
 }

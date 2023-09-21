@@ -108,5 +108,36 @@ namespace userMS.Infrastructure.Services
             smtp.Disconnect(true);
             smtp.Dispose();
         }
+
+        public async Task SendExternalLoginEmailAsync(ExternalLoginEmailRequestDto externalLoginEmailRequestDto)
+        {
+            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Views/ExternalLogin.html");
+            var template = File.ReadAllText(templatePath);
+
+            var content = string.Format(template, externalLoginEmailRequestDto.Username, externalLoginEmailRequestDto.Provider,
+                externalLoginEmailRequestDto.Email, DateTime.Now.ToString());
+
+            #region Email creation and sending
+
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(_options.EmailSettings.Username));
+            email.To.Add(MailboxAddress.Parse(externalLoginEmailRequestDto.Email));
+            email.Subject = _options.EmailContent.ExternalLoginSubject;
+
+            var bodyBuilder = new BodyBuilder
+            {
+                HtmlBody = content
+            };
+
+            email.Body = bodyBuilder.ToMessageBody();
+
+            var smtp = new SmtpClient();
+            smtp.Connect(_options.EmailSettings.Host, PortTLS, SecureSocketOptions.StartTls);
+            smtp.Authenticate(_options.EmailSettings.Username, _options.EmailSettings.Password);
+            await smtp.SendAsync(email);
+            smtp.Disconnect(true);
+            smtp.Dispose();
+            #endregion
+        }
     }
 }
