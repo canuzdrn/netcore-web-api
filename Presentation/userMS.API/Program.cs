@@ -165,18 +165,13 @@ builder.Services
         options.ClientId = configuration["Google:ClientId"];
         options.ClientSecret = configuration["Google:ClientSecret"];
         options.SaveTokens = true;
-    });
-
-
-builder.Services.AddAuthentication()
+    })
     .AddMicrosoftAccount(options =>
     {
         options.ClientId = configuration["Microsoft:ClientId"];
         options.ClientSecret = configuration["Microsoft:ClientSecret"];
         options.SaveTokens = true;
-    });
-
-builder.Services.AddAuthentication()
+    })
     .AddTwitter(options =>
     {
         options.ConsumerKey = configuration["Twitter:ApiKey"];
