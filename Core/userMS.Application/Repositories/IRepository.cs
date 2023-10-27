@@ -6,6 +6,10 @@ namespace userMS.Application.Repositories
     // TPrimaryKey to allow the repository to handle entities with different primary key types
     public interface IRepository<TEntity, TPrimaryKey> where TEntity : IEntity<TPrimaryKey>
     {
+        IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> predicate = null);
+        
+        Task<IEnumerable<TEntity>> GetAsync(Expression<Func<TEntity, bool>> predicate = null);
+
         IEnumerable<TEntity> GetAll();
 
         Task<IEnumerable<TEntity>> GetAllAsync();
@@ -53,5 +57,13 @@ namespace userMS.Application.Repositories
         int Count(Expression<Func<TEntity, bool>> predicate);
 
         Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate);
+
+        IQueryable<TEntity> Query();
+
+        Task<IEnumerable<TEntity>> QueryAsync();
+
+        bool Exists(Expression<Func<TEntity, bool>> predicate);
+
+        Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate);
     }
 }

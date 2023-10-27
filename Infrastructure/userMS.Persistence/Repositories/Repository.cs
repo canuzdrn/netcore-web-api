@@ -22,6 +22,18 @@ namespace userMS.Persistence.Repositories
             _collection = mongoDatabase.GetCollection<TEntity>(typeof(TEntity).Name + "Collection");
         }
 
+        public IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> predicate = null)
+        {
+            return _collection.Find(predicate).ToList();
+        }
+
+        public async Task<IEnumerable<TEntity>> GetAsync(Expression<Func<TEntity, bool>> predicate = null)
+        {
+            var filtered = await _collection.FindAsync(predicate);
+
+            return await filtered.ToListAsync();
+        }
+
         public TEntity Add(TEntity entity)
         {
             _collection.InsertOne(entity);
@@ -187,6 +199,31 @@ namespace userMS.Persistence.Repositories
             }
 
             return entities;
+        }
+
+        public IQueryable<TEntity> Query()
+        {
+            return _collection.AsQueryable();
+        }
+
+        public async Task<IEnumerable<TEntity>> QueryAsync()
+        {
+            var retrieveResult = await _collection.FindAsync(Builders<TEntity>.Filter.Empty);
+            return await retrieveResult.ToListAsync();
+        }
+
+        public bool Exists(Expression<Func<TEntity, bool>> predicate)
+        {
+            var result = _collection.Find(predicate).FirstOrDefault();
+
+            return result is not null;
+        }
+
+        public async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate)
+        {
+            var result = await _collection.Find(predicate).FirstOrDefaultAsync();
+
+            return result is not null;
         }
 
     }
