@@ -1,0 +1,10 @@
+Domain Layer in Onion Architecture is where the application's core domain logic resides
+It defines:
+- Entitites
+- Value Objects
+- Domain Services
+(Also some implementations include "Exceptions" about entities)
+
+In summary Domain Layer is where application's core domain logic resides.
+By keeping core domain logic of the application decoupled and independent,
+developers can build more maintainable, testable and domain-focused code.
